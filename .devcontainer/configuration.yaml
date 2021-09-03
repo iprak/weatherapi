@@ -1,0 +1,14 @@
+#Limited configuration instead of default_config
+#https://github.com/home-assistant/core/tree/dev/homeassistant/components/default_config
+automation:
+frontend:
+history:
+logbook:
+
+homeassistant:
+  name: Home
+
+logger:
+  default: info
+  logs:
+    custom_components.weatherapi: debug
