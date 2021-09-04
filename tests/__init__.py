@@ -1,1 +1,1 @@
-"""Tests for Winix component."""
+"""Tests for WeatherAPI component."""

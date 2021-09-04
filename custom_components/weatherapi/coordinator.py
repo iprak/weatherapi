@@ -4,7 +4,7 @@ import asyncio
 from dataclasses import dataclass
 from datetime import timedelta
 import logging
-from typing import Any, cast
+from typing import Any
 
 import aiohttp
 from aiohttp import ClientSession
@@ -180,7 +180,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
         return await self.get_weather()
 
     async def get_weather(self):
-        """Get weather forecast."""
+        """Get weather data."""
 
         params = {
             "key": self._api_key,
@@ -190,7 +190,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
         }
         headers = {
             "accept": "application/json",
-            "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/34.0.1847.116 Chrome/34.0.1847.116 Safari/537.36",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36",
         }
 
         try:
@@ -217,18 +217,18 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
             raise CannotConnect from exception
 
     def parse_forecast(self, json):
-        """Parse the forcast JSON data."""
+        """Parse the forecast JSON data."""
         entries = []
 
         if not json:
-            _LOGGER.warning("No data received.")
+            _LOGGER.warning("No forecast data received.")
             return entries
 
         _LOGGER.debug(json)
 
         forecastday = json.get("forecastday")
         if not forecastday:
-            _LOGGER.warning("No forecast found in data.")
+            _LOGGER.warning("No day forecast found in data.")
             return entries
 
         is_metric = self._is_metric
@@ -276,7 +276,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
         return entries
 
     def parse_current(self, json):
-        """Parse the current JSON data."""
+        """Parse the current weather JSON data."""
         if not json:
             _LOGGER.warning("No current data received.")
             return {}
