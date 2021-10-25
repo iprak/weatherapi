@@ -3,6 +3,7 @@
 import asyncio
 from dataclasses import dataclass
 from datetime import timedelta
+from http import HTTPStatus
 import logging
 from typing import Any
 
@@ -27,7 +28,6 @@ from homeassistant.components.weather import (
     ATTR_WEATHER_WIND_BEARING,
     ATTR_WEATHER_WIND_SPEED,
 )
-from homeassistant.const import HTTP_OK
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -113,7 +113,7 @@ async def is_valid_api_key(hass: HomeAssistant, api_key: str) -> bool:
                 TIMEZONE_URL, timeout=10, headers=headers, params=params
             )
 
-            if response.status != HTTP_OK:
+            if response.status != HTTPStatus.OK:
                 _LOGGER.error("Timeout connecting to WeatherAPI end point")
                 return False
 
@@ -203,7 +203,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
                     params=params,
                 )
 
-                if response.status != HTTP_OK:
+                if response.status != HTTPStatus.OK:
                     _LOGGER.error("Timeout connecting to WeatherAPI end point")
                     return
 
