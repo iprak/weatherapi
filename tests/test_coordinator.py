@@ -1,13 +1,13 @@
 """Test WeathreAPI coordinator."""
 
 import asyncio
+from http import HTTPStatus
 from unittest.mock import AsyncMock, Mock, call, patch
 
 from homeassistant.components.weather import (
     ATTR_CONDITION_CLEAR_NIGHT,
     ATTR_CONDITION_SUNNY,
 )
-from homeassistant.const import HTTP_NOT_FOUND, HTTP_OK
 import pytest
 
 from custom_components.weatherapi import coordinator
@@ -60,10 +60,10 @@ def test_parse_condition_code(value, is_day, result):
 @pytest.mark.parametrize(
     "response_status, json,result",
     [
-        (HTTP_NOT_FOUND, None, False),
-        (HTTP_OK, {"error": {"code": "12345"}}, False),
-        (HTTP_OK, {}, True),
-        (HTTP_OK, {"error": {}}, True),
+        (HTTPStatus.NOT_FOUND, None, False),
+        (HTTPStatus.OK, {"error": {"code": "12345"}}, False),
+        (HTTPStatus.OK, {}, True),
+        (HTTPStatus.OK, {"error": {}}, True),
     ],
 )
 async def test_is_valid_api_key(hass, response_status, json, result):
@@ -153,7 +153,7 @@ async def test_get_weather(hass, mock_json, coordinator_config):
     """Test coordinator data update."""
     session = Mock()
     response = Mock()
-    response.status = HTTP_OK
+    response.status = HTTPStatus.OK
     response.json = AsyncMock(return_value=mock_json)
     session.get = AsyncMock(return_value=response)
 
@@ -173,7 +173,7 @@ async def test_get_weather_no_forecast_data(hass, coordinator_config):
     """Test missing forecast data."""
     session = Mock()
     response = Mock()
-    response.status = HTTP_OK
+    response.status = HTTPStatus.OK
     mock_json = {}
     response.json = AsyncMock(return_value=mock_json)
     session.get = AsyncMock(return_value=response)
@@ -202,7 +202,7 @@ async def test_get_weather_no_forecastday_data(hass, coordinator_config):
     """Test missing forecast data."""
     session = Mock()
     response = Mock()
-    response.status = HTTP_OK
+    response.status = HTTPStatus.OK
     mock_json = {"forecast": {"dummyNode": "1"}}  # No forecastday
     response.json = AsyncMock(return_value=mock_json)
     session.get = AsyncMock(return_value=response)
