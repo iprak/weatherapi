@@ -12,6 +12,4 @@ The `WeatherAPI` integration displays weather forecast from [WeatherAPI](https:/
 
 * Restart HomeAssistant.
 
-* `WeatherAPI` can now be added to your Home Assistant instance can be done via the user interface, by using this button:<img src="https://my.home-assistant.io/badges/config_flow_start.svg">
-
-
+* `WeatherAPI` can now be added to your Home Assistant instance via the user interface, by using this button:<img src="https://my.home-assistant.io/badges/config_flow_start.svg">
