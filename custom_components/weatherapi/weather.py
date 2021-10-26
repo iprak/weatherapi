@@ -46,7 +46,7 @@ from .const import (
     MANUFACTURER,
 )
 
-ATTRIBUTION = "Powered by WeatherAPI"
+ATTRIBUTION = "Powered by WeatherAPI.com"
 _LOGGER = logging.getLogger(__name__)
 ENTITY_ID_FORMAT = WEATHER_DOMAIN + ".{}"
 
