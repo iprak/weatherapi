@@ -1,5 +1,5 @@
 {
-  "domain": "weatherapi",
+  "domain": "weather_weatherapi",
   "name": "WeatherAPI",
   "documentation": "https://github.com/iprak/weatherapi",
   "requirements": [],
@@ -9,5 +9,6 @@
   ],
   "issue_tracker": "https://github.com/iprak/weatherapi/issues",
   "version": "0.1",
-  "config_flow": true
+  "config_flow": true,
+  "iot_class": "cloud_polling"
 }
