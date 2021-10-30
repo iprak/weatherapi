@@ -1,5 +1,5 @@
 {
-  "domain": "weather_weatherapi",
+  "domain": "weatherapi",
   "name": "WeatherAPI",
   "documentation": "https://github.com/iprak/weatherapi",
   "requirements": [],
