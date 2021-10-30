@@ -3,6 +3,5 @@
     "domains": [
         "weather"
     ],
-    "iot_class": "cloud_poll",
     "render_readme": true
 }
