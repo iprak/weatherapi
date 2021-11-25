@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import timedelta
 from http import HTTPStatus
 import logging
-from typing import Any
+from typing import Any, Union
 
 import aiohttp
 from aiohttp import ClientSession
@@ -13,13 +13,6 @@ import async_timeout
 from homeassistant.components.weather import (
     ATTR_CONDITION_CLEAR_NIGHT,
     ATTR_CONDITION_SUNNY,
-    ATTR_FORECAST_CONDITION,
-    ATTR_FORECAST_PRECIPITATION,
-    ATTR_FORECAST_PRECIPITATION_PROBABILITY,
-    ATTR_FORECAST_TEMP,
-    ATTR_FORECAST_TEMP_LOW,
-    ATTR_FORECAST_TIME,
-    ATTR_FORECAST_WIND_SPEED,
     ATTR_WEATHER_HUMIDITY,
     ATTR_WEATHER_OZONE,
     ATTR_WEATHER_PRESSURE,
@@ -27,6 +20,7 @@ from homeassistant.components.weather import (
     ATTR_WEATHER_VISIBILITY,
     ATTR_WEATHER_WIND_BEARING,
     ATTR_WEATHER_WIND_SPEED,
+    Forecast,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
@@ -50,7 +44,7 @@ CURRENT_URL = f"{BASE_URL}/current.json"
 FORECAST_URL = f"{BASE_URL}/forecast.json"
 
 
-def to_float(value):
+def to_float(value: Union[str, None]) -> Union[float, None]:
     """Safely convert string value to rounded float."""
     if value is None:
         return None
@@ -64,7 +58,7 @@ def to_float(value):
         return None
 
 
-def to_int(value):
+def to_int(value: Union[str, None]) -> Union[int, None]:
     """Safely convert string value to int."""
     if value is None:
         return None
@@ -73,6 +67,15 @@ def to_int(value):
         return int(value)
     except (ValueError, TypeError):
         return None
+
+
+def datetime_to_iso(value: Union[str, None]) -> str:
+    """Convert date time value to iso."""
+
+    if value is None:
+        return None
+
+    return dt_util.as_utc(dt_util.parse_datetime(value)).isoformat()
 
 
 def parse_condition_code(value, is_day: bool = True) -> str:
@@ -142,6 +145,7 @@ class WeatherAPIUpdateCoordinatorConfig:
     name: str
     update_interval: timedelta
     forecast: bool = True
+    hourly_forecast: bool = False
 
 
 class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
@@ -155,6 +159,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
         self._api_key = config.api_key
         self._location = config.location
         self._forecast = config.forecast
+        self._hourly_forecast = config.hourly_forecast
         self._name = config.name
 
         self._is_metric = hass.config.units.is_metric
@@ -188,10 +193,13 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
             "days": FORECAST_DAYS,
             "aqi": "yes",
         }
+
+        # pylint: disable=line-too-long
         headers = {
             "accept": "application/json",
             "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36",
         }
+        # pylint: enable=line-too-long
 
         try:
             session: ClientSession = async_get_clientsession(self.hass)
@@ -209,7 +217,11 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
 
                 json_data = await response.json()
                 result = self.parse_current(json_data.get("current"))
-                result[DATA_FORECAST] = self.parse_forecast(json_data.get("forecast"))
+                result[DATA_FORECAST] = (
+                    self.parse_forecast(json_data.get("forecast"))
+                    if self._forecast
+                    else None
+                )
                 return result
 
         except (asyncio.TimeoutError, aiohttp.ClientError) as exception:
@@ -226,53 +238,75 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
 
         _LOGGER.debug(json)
 
-        forecastday = json.get("forecastday")
-        if not forecastday:
+        forecastday_array = json.get("forecastday")
+        if not forecastday_array:
             _LOGGER.warning("No day forecast found in data.")
             return entries
 
         is_metric = self._is_metric
 
-        for forecastday_entry in forecastday:
+        for forecastday in forecastday_array:
             # `date` is in YYYY-MM-DD format
             # `date_epoch` is unix time
 
-            forecast_date = dt_util.as_utc(
-                dt_util.parse_datetime(forecastday_entry.get("date"))
-            )
+            day = forecastday.get("day")
 
-            forecast_data = forecastday_entry.get("day")
-            forecast_condition = forecast_data.get("condition")
+            if self._hourly_forecast:
+                hour_array = forecastday.get("hour")
+                hour_forecast_with_no_data = 0
 
-            entry = {
-                ATTR_FORECAST_TIME: forecast_date.isoformat(),
-                ATTR_FORECAST_TEMP: to_float(
-                    forecast_data.get("maxtemp_c" if is_metric else "maxtemp_f")
-                ),
-                ATTR_FORECAST_TEMP_LOW: to_float(
-                    forecast_data.get("mintemp_c" if is_metric else "mintemp_f")
-                ),
-                ATTR_FORECAST_PRECIPITATION: to_float(
-                    forecast_data.get(
-                        "totalprecip_mm" if is_metric else "totalprecip_in"
+                for hour in hour_array:
+                    # Sometimes the hourly forecast jut has empty condition, skip if `time` is missing
+                    hour_forecast_time = datetime_to_iso(hour.get("time"))
+                    if hour_forecast_time is None:
+                        hour_forecast_with_no_data += 1
+                    else:
+                        condition = hour.get("condition", {})
+                        hour_entry = Forecast(
+                            datetime=hour_forecast_time,
+                            temperature=to_float(
+                                hour.get("temp_c" if is_metric else "temp_f")
+                            ),
+                            precipitation_probability=hour.get("chance_of_rain"),
+                            wind_speed=to_float(
+                                hour.get("wind_mph" if is_metric else "wind_kph")
+                            ),
+                            condition=parse_condition_code(condition.get("code")),
+                        )
+
+                        entries.append(hour_entry)
+
+                if hour_forecast_with_no_data > 0:
+                    _LOGGER.warn(
+                        "%d hourly forecasts found for %s with no data.",
+                        hour_forecast_with_no_data,
+                        self._name,
                     )
-                ),
-                ATTR_FORECAST_PRECIPITATION_PROBABILITY: forecast_data.get(
-                    "daily_chance_of_rain"
-                ),
-                ATTR_FORECAST_WIND_SPEED: to_float(
-                    forecast_data.get("maxwind_kph" if is_metric else "maxwind_mph")
-                ),
-                ATTR_FORECAST_CONDITION: parse_condition_code(
-                    forecast_condition.get("code")
+
+            else:
+                condition = day.get("condition", {})
+
+                day_entry = Forecast(
+                    datetime=datetime_to_iso(forecastday.get("date")),
+                    temperature=to_float(
+                        day.get("maxtemp_c" if is_metric else "maxtemp_f")
+                    ),
+                    templow=to_float(
+                        day.get("mintemp_c" if is_metric else "mintemp_f")
+                    ),
+                    precipitation=to_float(
+                        day.get("totalprecip_mm" if is_metric else "totalprecip_in")
+                    ),
+                    precipitation_probability=day.get("daily_chance_of_rain"),
+                    wind_speed=to_float(
+                        day.get("maxwind_kph" if is_metric else "maxwind_mph")
+                    ),
+                    condition=parse_condition_code(condition.get("code")),
                 )
-                if forecast_condition
-                else None,
-            }
 
-            entries.append(entry)
+                entries.append(day_entry)
 
-        _LOGGER.info("Loaded %s days of forecast for %s.", len(entries), self._name)
+        _LOGGER.info("Loaded %s forecast values for %s.", len(entries), self._name)
         return entries
 
     def parse_current(self, json):
@@ -284,8 +318,8 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
         _LOGGER.debug(json)
 
         is_metric = self._is_metric
-        condition = json.get("condition")
-        air_quality = json.get("air_quality")
+        condition = json.get("condition", {})
+        air_quality = json.get("air_quality", {})
         is_day = to_int(json.get("is_day")) == 1
 
         return {
@@ -303,12 +337,8 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
             ATTR_WEATHER_VISIBILITY: to_float(
                 json.get("vis_km" if is_metric else "vis_miles")
             ),
-            ATTR_WEATHER_CONDITION: parse_condition_code(condition.get("code"), is_day)
-            if condition
-            else None,
-            ATTR_WEATHER_OZONE: to_float(air_quality.get("o3"))
-            if air_quality
-            else None,
+            ATTR_WEATHER_CONDITION: parse_condition_code(condition.get("code"), is_day),
+            ATTR_WEATHER_OZONE: to_float(air_quality.get("o3")),
         }
 
 

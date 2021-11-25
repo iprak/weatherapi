@@ -6,7 +6,14 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_API_KEY, CONF_LATITUDE, CONF_LONGITUDE, CONF_NAME
 from homeassistant.core import HomeAssistant
 
-from custom_components.weatherapi.const import DOMAIN, UPDATE_INTERVAL_MINUTES
+from custom_components.weatherapi.const import (
+    CONFIG_FORECAST,
+    CONFIG_HOURLY_FORECAST,
+    DEFAULT_FORECAST,
+    DEFAULT_HOURLY_FORECAST,
+    DOMAIN,
+    UPDATE_INTERVAL_MINUTES,
+)
 from custom_components.weatherapi.coordinator import (
     WeatherAPIUpdateCoordinator,
     WeatherAPIUpdateCoordinatorConfig,
@@ -28,7 +35,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         location=f"{latitude},{longitude}",
         name=entry.data[CONF_NAME],
         update_interval=timedelta(minutes=UPDATE_INTERVAL_MINUTES),
+        forecast=entry.options.get(CONFIG_FORECAST, DEFAULT_FORECAST),
+        hourly_forecast=entry.options.get(
+            CONFIG_HOURLY_FORECAST, DEFAULT_HOURLY_FORECAST
+        ),
     )
+
     coordinator = WeatherAPIUpdateCoordinator(hass, config)
     await coordinator.async_config_entry_first_refresh()
 

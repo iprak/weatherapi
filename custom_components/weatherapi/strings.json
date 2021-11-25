@@ -16,5 +16,15 @@
             "invalid_api_key": "[%key:common::config_flow::error::invalid_api_key%]",
             "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]"
         }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "data": {
+                    "forecast": "Generate forecast",
+                    "hourly_forecast": "Generate hourly forecast instead of daily"
+                }
+            }
+        }
     }
 }
