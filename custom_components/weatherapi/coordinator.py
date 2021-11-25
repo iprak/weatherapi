@@ -78,7 +78,7 @@ def datetime_to_iso(value: Union[str, None]) -> str:
     return dt_util.as_utc(dt_util.parse_datetime(value)).isoformat()
 
 
-def parse_condition_code(value, is_day: bool = True) -> str:
+def parse_condition_code(value, is_day: bool) -> str:
     """Convert WeatherAPI condition code to standard weather condition."""
     if value is None:
         return None
@@ -256,28 +256,16 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
                 hour_forecast_with_no_data = 0
 
                 for hour in hour_array:
-                    # Sometimes the hourly forecast jut has empty condition, skip if `time` is missing
-                    hour_forecast_time = datetime_to_iso(hour.get("time"))
-                    if hour_forecast_time is None:
+                    # Skip hourly forecast if it is empty .. `time` is missing
+
+                    hour_entry = self.parse_hour_forecast(hour, is_metric)
+                    if hour_entry is None:
                         hour_forecast_with_no_data += 1
                     else:
-                        condition = hour.get("condition", {})
-                        hour_entry = Forecast(
-                            datetime=hour_forecast_time,
-                            temperature=to_float(
-                                hour.get("temp_c" if is_metric else "temp_f")
-                            ),
-                            precipitation_probability=hour.get("chance_of_rain"),
-                            wind_speed=to_float(
-                                hour.get("wind_mph" if is_metric else "wind_kph")
-                            ),
-                            condition=parse_condition_code(condition.get("code")),
-                        )
-
                         entries.append(hour_entry)
 
                 if hour_forecast_with_no_data > 0:
-                    _LOGGER.warn(
+                    _LOGGER.warning(
                         "%d hourly forecasts found for %s with no data.",
                         hour_forecast_with_no_data,
                         self._name,
@@ -285,6 +273,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
 
             else:
                 condition = day.get("condition", {})
+                is_day = to_int(day.get("is_day", "1")) == 1
 
                 day_entry = Forecast(
                     datetime=datetime_to_iso(forecastday.get("date")),
@@ -301,13 +290,36 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
                     wind_speed=to_float(
                         day.get("maxwind_kph" if is_metric else "maxwind_mph")
                     ),
-                    condition=parse_condition_code(condition.get("code")),
+                    condition=parse_condition_code(condition.get("code"), is_day),
                 )
 
                 entries.append(day_entry)
 
         _LOGGER.info("Loaded %s forecast values for %s.", len(entries), self._name)
         return entries
+
+    @staticmethod
+    def parse_hour_forecast(data: any, is_metric: bool) -> Forecast:
+        """Parse hour forecast data."""
+
+        if data is None:
+            return None
+
+        # Sometimes the hourly forecast just has empty condition, skip if `time` element is missing.
+        hour_forecast_time = data.get("time")
+        if hour_forecast_time is None:
+            return None
+
+        condition = data.get("condition", {})
+        hour_forecast_time = datetime_to_iso(hour_forecast_time)
+        is_day = to_int(data.get("is_day", "1")) == 1
+        return Forecast(
+            datetime=hour_forecast_time,
+            temperature=to_float(data.get("temp_c" if is_metric else "temp_f")),
+            precipitation_probability=data.get("chance_of_rain"),
+            wind_speed=to_float(data.get("wind_mph" if is_metric else "wind_kph")),
+            condition=parse_condition_code(condition.get("code"), is_day),
+        )
 
     def parse_current(self, json):
         """Parse the current weather JSON data."""
@@ -320,7 +332,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
         is_metric = self._is_metric
         condition = json.get("condition", {})
         air_quality = json.get("air_quality", {})
-        is_day = to_int(json.get("is_day")) == 1
+        is_day = to_int(json.get("is_day", "1")) == 1
 
         return {
             ATTR_WEATHER_HUMIDITY: to_float(json.get("humidity")),
