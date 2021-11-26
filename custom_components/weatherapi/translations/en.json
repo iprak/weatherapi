@@ -15,5 +15,15 @@
                 "title": "WeatherAPI"
             }
         }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "data": {
+                    "forecast": "Generate forecast",
+                    "hourly_forecast": "Generate hourly forecast instead of daily"
+                }
+            }
+        }
     }
 }

@@ -4,14 +4,20 @@ import logging
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_API_KEY, CONF_LATITUDE, CONF_LONGITUDE, CONF_NAME
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 
 from custom_components.weatherapi.coordinator import CannotConnect, is_valid_api_key
 
-from .const import DOMAIN  # pylint:disable=unused-import
+from .const import (  # pylint:disable=unused-import
+    CONFIG_FORECAST,
+    CONFIG_HOURLY_FORECAST,
+    DEFAULT_FORECAST,
+    DEFAULT_HOURLY_FORECAST,
+    DOMAIN,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -28,10 +34,55 @@ def get_data_schema(hass: HomeAssistant) -> vol.Schema:
     )
 
 
+class OptionsFlowHandler(config_entries.OptionsFlow):
+    """Handle options flow."""
+
+    def __init__(self, config_entry: config_entries.ConfigEntry):
+        """Initialize options flow."""
+        self.config_entry = config_entry
+
+    async def async_step_init(self, user_input=None):
+        """Handle options flow."""
+        if user_input is not None:
+            return self.async_create_entry(title="", data=user_input)
+
+        data_schema = vol.Schema(
+            {
+                vol.Required(
+                    CONFIG_FORECAST,
+                    default=self.config_entry.options.get(
+                        CONFIG_FORECAST,
+                        DEFAULT_FORECAST,
+                    ),
+                ): bool,
+                vol.Required(
+                    CONFIG_HOURLY_FORECAST,
+                    default=self.config_entry.options.get(
+                        CONFIG_HOURLY_FORECAST,
+                        DEFAULT_HOURLY_FORECAST,
+                    ),
+                ): bool,
+            }
+        )
+        return self.async_show_form(step_id="init", data_schema=data_schema)
+
+
 class WeatherAPIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for WeatherAPI."""
 
     VERSION = 1
+
+    def __init__(
+        self,
+        domain: str,
+        title: str,
+        discovery_function: any,
+    ) -> None:
+        """Initialize the config flow."""
+        self._domain = domain
+        self._title = title
+        print(domain)
+        print(title)
 
     async def async_step_user(self, user_input=None) -> FlowResult:
         """Handle a flow initialized by the user."""
@@ -64,3 +115,11 @@ class WeatherAPIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             data_schema=get_data_schema(self.hass),
             errors=errors,
         )
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> OptionsFlowHandler:
+        """Get the options flow for this handler."""
+        return OptionsFlowHandler(config_entry)

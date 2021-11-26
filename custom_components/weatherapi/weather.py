@@ -1,6 +1,7 @@
 """Support for the AccuWeather service."""
 
 import logging
+from typing import Union
 
 from homeassistant.components.weather import (
     ATTR_WEATHER_HUMIDITY,
@@ -12,14 +13,11 @@ from homeassistant.components.weather import (
     ATTR_WEATHER_WIND_SPEED,
     DOMAIN as WEATHER_DOMAIN,
     PLATFORM_SCHEMA,
+    Forecast,
     WeatherEntity,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
-    ATTR_IDENTIFIERS,
-    ATTR_MANUFACTURER,
-    ATTR_MODEL,
-    ATTR_NAME,
     CONF_API_KEY,
     CONF_LATITUDE,
     CONF_LONGITUDE,
@@ -30,21 +28,13 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 import homeassistant.helpers.config_validation as cv
-from homeassistant.helpers.entity import generate_entity_id
+from homeassistant.helpers.entity import DeviceInfo, generate_entity_id
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 import voluptuous as vol
 
 from . import WeatherAPIUpdateCoordinator
-from .const import (
-    ATTR_ENTRY_TYPE,
-    ATTR_WEATHER_CONDITION,
-    DATA_FORECAST,
-    DEFAULT_NAME,
-    DOMAIN,
-    ENTRY_TYPE_SERVICE,
-    MANUFACTURER,
-)
+from .const import ATTR_WEATHER_CONDITION, DATA_FORECAST, DOMAIN, MANUFACTURER
 
 ATTRIBUTION = "Powered by WeatherAPI.com"
 _LOGGER = logging.getLogger(__name__)
@@ -88,70 +78,73 @@ class WeatherAPIEntity(CoordinatorEntity, WeatherEntity):
         )
         self._attr_precision = PRECISION_TENTHS
         self._attr_attribution = ATTRIBUTION
-        self._attr_device_info = {
-            ATTR_IDENTIFIERS: {(DOMAIN, self._unique_id)},
-            ATTR_MANUFACTURER: MANUFACTURER,
-            ATTR_NAME: name,
-            ATTR_MODEL: DEFAULT_NAME,
-            ATTR_ENTRY_TYPE: ENTRY_TYPE_SERVICE,
-        }
 
     @property
-    def available(self):
+    def available(self) -> bool:
         """Return if weather data is available."""
         return self.coordinator.data is not None
 
     @property
-    def unique_id(self):
+    def device_info(self) -> Union[DeviceInfo, None]:
+        """Return device information about the application."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._unique_id)},
+            name=self._name,
+            manufacturer=MANUFACTURER,
+            entry_type="service",
+        )
+
+    @property
+    def unique_id(self) -> str:
         """Return a unique ID."""
         return self._unique_id
 
     @property
-    def name(self):
+    def name(self) -> str:
         """Return the name of the entity."""
         return self._name
 
     @property
-    def temperature(self):
+    def temperature(self) -> Union[float, None]:
         """Return the temperature."""
         return self.coordinator.data.get(ATTR_WEATHER_TEMPERATURE)
 
     @property
-    def pressure(self):
+    def pressure(self) -> Union[float, None]:
         """Return the pressure."""
         return self.coordinator.data.get(ATTR_WEATHER_PRESSURE)
 
     @property
-    def humidity(self):
+    def humidity(self) -> Union[float, None]:
         """Return the humidity."""
         return self.coordinator.data.get(ATTR_WEATHER_HUMIDITY)
 
     @property
-    def wind_speed(self):
+    def wind_speed(self) -> Union[float, None]:
         """Return the wind speed."""
         return self.coordinator.data.get(ATTR_WEATHER_WIND_SPEED)
 
     @property
-    def wind_bearing(self):
+    def wind_bearing(self) -> Union[float, str, None]:
         """Return the wind bearing."""
         return self.coordinator.data.get(ATTR_WEATHER_WIND_BEARING)
 
     @property
-    def ozone(self):
+    def ozone(self) -> Union[float, None]:
         """Return the ozone level."""
         return self.coordinator.data.get(ATTR_WEATHER_OZONE)
 
     @property
-    def visibility(self):
+    def visibility(self) -> Union[float, None]:
         """Return the visibility."""
         return self.coordinator.data.get(ATTR_WEATHER_VISIBILITY)
 
     @property
-    def forecast(self):
+    def forecast(self) -> Union[list[Forecast], None]:
         """Return the forecast array."""
         return self.coordinator.data.get(DATA_FORECAST)
 
     @property
-    def condition(self):
+    def condition(self) -> Union[str, None]:
         """Return the current condition."""
         return self.coordinator.data.get(ATTR_WEATHER_CONDITION)

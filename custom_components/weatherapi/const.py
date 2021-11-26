@@ -17,7 +17,6 @@ from homeassistant.components.weather import (
 )
 
 DOMAIN: Final = "weatherapi"
-DEFAULT_NAME: Final = "WeatherAPI"
 MANUFACTURER: Final = "WeatherAPI"
 FORECAST_DAYS: Final = 5
 
@@ -27,8 +26,11 @@ UPDATE_INTERVAL_MINUTES: Final = 5
 ATTR_WEATHER_CONDITION: Final = "condition"
 DATA_FORECAST: Final = "forecast"
 
-ATTR_ENTRY_TYPE: Final = "entry_type"
-ENTRY_TYPE_SERVICE: Final = "service"
+CONFIG_FORECAST: Final = "forecast"
+CONFIG_HOURLY_FORECAST: Final = "hourly_forecast"
+
+DEFAULT_FORECAST: Final = True
+DEFAULT_HOURLY_FORECAST: Final = False
 
 # https://www.weatherapi.com/docs/weather_conditions.json
 CONDITION_MAP: Final[dict[str, list[int]]] = {
