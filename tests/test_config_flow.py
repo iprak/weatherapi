@@ -72,9 +72,7 @@ async def test_create_entry(hass, enable_custom_integrations):
 
 async def test_options_flow(hass, enable_custom_integrations):
     """Test config flow options."""
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-    )
+    entry = MockConfigEntry(domain=DOMAIN)
     entry.add_to_hass(hass)
 
     await hass.config_entries.async_setup(entry.entry_id)
@@ -89,9 +87,7 @@ async def test_options_flow(hass, enable_custom_integrations):
 async def test_options_flow_create_entry(hass, enable_custom_integrations):
     """Test that entry is creted from config flow options."""
 
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-    )
+    entry = MockConfigEntry(domain=DOMAIN)
     entry.add_to_hass(hass)
 
     await hass.config_entries.async_setup(entry.entry_id)
