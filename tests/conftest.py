@@ -3,6 +3,7 @@ from datetime import timedelta
 import json
 import os
 
+from homeassistant import loader
 import pytest
 
 from custom_components.weatherapi import coordinator
@@ -43,3 +44,9 @@ def coordinator_config_hourly_forecast():
         update_interval=timedelta(minutes=UPDATE_INTERVAL_MINUTES),
         hourly_forecast=True,
     )
+
+
+@pytest.fixture
+def enable_custom_integrations(hass):
+    """Enable custom integrations defined in the test dir."""
+    hass.data.pop(loader.DATA_CUSTOM_COMPONENTS)
