@@ -72,18 +72,6 @@ class WeatherAPIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
-    def __init__(
-        self,
-        domain: str,
-        title: str,
-        discovery_function: any,
-    ) -> None:
-        """Initialize the config flow."""
-        self._domain = domain
-        self._title = title
-        print(domain)
-        print(title)
-
     async def async_step_user(self, user_input=None) -> FlowResult:
         """Handle a flow initialized by the user."""
         errors = {}
