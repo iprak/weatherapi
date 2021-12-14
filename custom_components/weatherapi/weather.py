@@ -28,6 +28,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 import homeassistant.helpers.config_validation as cv
+from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.helpers.entity import DeviceInfo, generate_entity_id
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -91,7 +92,7 @@ class WeatherAPIEntity(CoordinatorEntity, WeatherEntity):
             identifiers={(DOMAIN, self._unique_id)},
             name=self._name,
             manufacturer=MANUFACTURER,
-            entry_type="service",
+            entry_type=DeviceEntryType.SERVICE,
         )
 
     @property
