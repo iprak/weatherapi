@@ -17,13 +17,18 @@ from homeassistant.components.weather import (
 )
 
 DOMAIN: Final = "weatherapi"
-MANUFACTURER: Final = "WeatherAPI"
 FORECAST_DAYS: Final = 5
+ATTRIBUTION = "Powered by WeatherAPI.com"
 
 # 1,000,000/month = 32,358/day = 1,344/hour = 22/minute
 UPDATE_INTERVAL_MINUTES: Final = 5
 
 ATTR_WEATHER_CONDITION: Final = "condition"
+ATTR_UV = "uv"
+# https://www.weatherapi.com/docs/#intro-aqi
+ATTR_AIR_QUALITY_US_EPA_INDEX: Final = "us-epa-index"
+ATTR_AIR_QUALITY_UK_DEFRA_INDEX: Final = "gb-defra-index"
+
 DATA_FORECAST: Final = "forecast"
 
 CONFIG_FORECAST: Final = "forecast"

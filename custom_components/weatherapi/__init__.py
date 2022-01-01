@@ -1,9 +1,16 @@
 """The WeatherAPI integration."""
 
 from datetime import timedelta
+from typing import Final
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_API_KEY, CONF_LATITUDE, CONF_LONGITUDE, CONF_NAME
+from homeassistant.const import (
+    CONF_API_KEY,
+    CONF_LATITUDE,
+    CONF_LONGITUDE,
+    CONF_NAME,
+    Platform,
+)
 from homeassistant.core import HomeAssistant
 
 from custom_components.weatherapi.const import (
@@ -19,7 +26,7 @@ from custom_components.weatherapi.coordinator import (
     WeatherAPIUpdateCoordinatorConfig,
 )
 
-PLATFORMS = ["weather"]
+PLATFORMS: Final = [Platform.WEATHER, Platform.AIR_QUALITY, Platform.SENSOR]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):

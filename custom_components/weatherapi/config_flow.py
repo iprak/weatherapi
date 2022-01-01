@@ -27,7 +27,7 @@ def get_data_schema(hass: HomeAssistant) -> vol.Schema:
     return vol.Schema(
         {
             vol.Required(CONF_API_KEY): str,
-            vol.Optional(CONF_NAME, default=hass.config.location_name): str,
+            vol.Required(CONF_NAME, default=hass.config.location_name): str,
             vol.Required(CONF_LATITUDE, default=hass.config.latitude): cv.latitude,
             vol.Required(CONF_LONGITUDE, default=hass.config.longitude): cv.longitude,
         }

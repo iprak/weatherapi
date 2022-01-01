@@ -1,6 +1,11 @@
 # Summary
 
-The `WeatherAPI` integration displays weather forecast from [WeatherAPI](https://www.weatherapi.com/).
+The `WeatherAPI` integration displays weather forecast, air quality and ultra violet data from [WeatherAPI](https://www.weatherapi.com/).
+
+You should see 3 entities generated for a location starting with the id:
+* sensor.weatherapi_
+* air_quality.weatherapi_
+* weather.weatherapi_
 
 
 # Installation
@@ -13,3 +18,8 @@ The `WeatherAPI` integration displays weather forecast from [WeatherAPI](https:/
 
 # Configuration
 The integration can be configured to generate hourly forecast using the `CONFIGURE` button on the Integrations page.
+
+
+
+# Breaking Changes
+* You might get duplicated/invalid entity after upgrading to [v0.6](https://github.com/iprak/weatherapi/releases). This can be fixed by deleting the inactive entity and adjusting the id of the active entity from `Configuration -> Devices & Services -> Entities`.
