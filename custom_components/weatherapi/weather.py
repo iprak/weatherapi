@@ -17,7 +17,13 @@ from homeassistant.components.weather import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_NAME,
+    LENGTH_KILOMETERS,
+    LENGTH_MILES,
     PRECISION_TENTHS,
+    PRESSURE_INHG,
+    PRESSURE_MBAR,
+    SPEED_KILOMETERS_PER_HOUR,
+    SPEED_MILES_PER_HOUR,
     TEMP_CELSIUS,
     TEMP_FAHRENHEIT,
 )
@@ -57,10 +63,18 @@ class WeatherAPIEntity(CoordinatorEntity, WeatherEntity):
         self._unique_id = f"{self.coordinator.location}_{self._name}"
         self._attr_attribution = ATTRIBUTION
 
-        self._attr_temperature_unit = (
-            TEMP_CELSIUS if self.coordinator.is_metric else TEMP_FAHRENHEIT
-        )
         self._attr_precision = PRECISION_TENTHS
+
+        if coordinator.is_metric:
+            self._attr_pressure_unit = PRESSURE_MBAR
+            self._attr_temperature_unit = TEMP_CELSIUS
+            self._attr_wind_speed_unit = SPEED_KILOMETERS_PER_HOUR
+            self._attr_visibility_unit = LENGTH_KILOMETERS
+        else:
+            self._attr_pressure_unit = PRESSURE_INHG
+            self._attr_temperature_unit = TEMP_FAHRENHEIT
+            self._attr_wind_speed_unit = SPEED_MILES_PER_HOUR
+            self._attr_visibility_unit = LENGTH_MILES
 
     @property
     def available(self) -> bool:
