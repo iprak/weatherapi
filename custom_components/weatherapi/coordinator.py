@@ -1,15 +1,25 @@
 """The WeatherAPI data coordinator."""
 
+from __future__ import annotations
+
 import asyncio
 from dataclasses import dataclass
 from datetime import timedelta
 from http import HTTPStatus
 import logging
-from typing import Any, Union
+from typing import Any
 
 import aiohttp
 from aiohttp import ClientSession
 import async_timeout
+from homeassistant.components.air_quality import (
+    ATTR_CO,
+    ATTR_NO2,
+    ATTR_OZONE,
+    ATTR_PM_2_5,
+    ATTR_PM_10,
+    ATTR_SO2,
+)
 from homeassistant.components.weather import (
     ATTR_CONDITION_CLEAR_NIGHT,
     ATTR_CONDITION_SUNNY,
@@ -30,6 +40,9 @@ import homeassistant.util.dt as dt_util
 import requests
 
 from custom_components.weatherapi.const import (
+    ATTR_AIR_QUALITY_UK_DEFRA_INDEX,
+    ATTR_AIR_QUALITY_US_EPA_INDEX,
+    ATTR_UV,
     ATTR_WEATHER_CONDITION,
     CONDITION_MAP,
     DATA_FORECAST,
@@ -44,7 +57,7 @@ CURRENT_URL = f"{BASE_URL}/current.json"
 FORECAST_URL = f"{BASE_URL}/forecast.json"
 
 
-def to_float(value: Union[str, None]) -> Union[float, None]:
+def to_float(value: str | None) -> float | None:
     """Safely convert string value to rounded float."""
     if value is None:
         return None
@@ -58,7 +71,7 @@ def to_float(value: Union[str, None]) -> Union[float, None]:
         return None
 
 
-def to_int(value: Union[str, None]) -> Union[int, None]:
+def to_int(value: str | None) -> int | None:
     """Safely convert string value to int."""
     if value is None:
         return None
@@ -69,7 +82,7 @@ def to_int(value: Union[str, None]) -> Union[int, None]:
         return None
 
 
-def datetime_to_iso(value: Union[str, None]) -> str:
+def datetime_to_iso(value: str | None) -> str:
     """Convert date time value to iso."""
 
     if value is None:
@@ -349,8 +362,22 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
             ATTR_WEATHER_VISIBILITY: to_float(
                 json.get("vis_km" if is_metric else "vis_miles")
             ),
+            ATTR_UV: to_float(json.get("uv")),
             ATTR_WEATHER_CONDITION: parse_condition_code(condition.get("code"), is_day),
             ATTR_WEATHER_OZONE: to_float(air_quality.get("o3")),
+            # Air quality data pieces
+            ATTR_CO: to_float(air_quality.get("co")),
+            ATTR_NO2: to_float(air_quality.get("no2")),
+            ATTR_OZONE: to_float(air_quality.get("o3")),
+            ATTR_PM_10: to_float(air_quality.get("so2")),
+            ATTR_PM_2_5: to_float(air_quality.get("pm2_5")),
+            ATTR_SO2: to_float(air_quality.get("pm10")),
+            ATTR_AIR_QUALITY_UK_DEFRA_INDEX: to_int(
+                air_quality.get(ATTR_AIR_QUALITY_UK_DEFRA_INDEX)
+            ),
+            ATTR_AIR_QUALITY_US_EPA_INDEX: to_int(
+                air_quality.get(ATTR_AIR_QUALITY_US_EPA_INDEX)
+            ),
         }
 
 
