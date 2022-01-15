@@ -26,7 +26,7 @@ from custom_components.weatherapi.coordinator import (
     WeatherAPIUpdateCoordinatorConfig,
 )
 
-PLATFORMS: Final = [Platform.WEATHER, Platform.AIR_QUALITY, Platform.SENSOR]
+PLATFORMS: Final = [Platform.WEATHER, Platform.SENSOR]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
