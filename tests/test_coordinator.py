@@ -1,4 +1,4 @@
-"""Test WeathreAPI coordinator."""
+"""Test WeatherAPI coordinator."""
 
 import asyncio
 from http import HTTPStatus

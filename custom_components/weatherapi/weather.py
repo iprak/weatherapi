@@ -44,19 +44,19 @@ async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
     """Add weather entity."""
-    name: str = entry.data[CONF_NAME]
+    location_name: str = entry.data[CONF_NAME]
     coordinator: WeatherAPIUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
-    async_add_entities([WeatherAPIEntity(name, coordinator)])
+    async_add_entities([WeatherAPIEntity(location_name, coordinator)])
 
 
 class WeatherAPIEntity(CoordinatorEntity, WeatherEntity):
     """Define a WeatherAPI entity."""
 
-    def __init__(self, name: str, coordinator: WeatherAPIUpdateCoordinator):
+    def __init__(self, location_name: str, coordinator: WeatherAPIUpdateCoordinator):
         """Initialize."""
         super().__init__(coordinator)
 
-        self._name = name
+        self._name = location_name
         self.entity_id = generate_entity_id(
             ENTITY_ID_FORMAT, f"{DOMAIN}_{self._name}", hass=coordinator.hass
         )
