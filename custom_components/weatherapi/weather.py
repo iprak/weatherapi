@@ -20,8 +20,8 @@ from homeassistant.const import (
     LENGTH_KILOMETERS,
     LENGTH_MILES,
     PRECISION_TENTHS,
-    PRESSURE_INHG,
-    PRESSURE_MBAR,
+    PRESSURE_PA,
+    PRESSURE_PSI,
     SPEED_KILOMETERS_PER_HOUR,
     SPEED_MILES_PER_HOUR,
     TEMP_CELSIUS,
@@ -65,13 +65,19 @@ class WeatherAPIEntity(CoordinatorEntity, WeatherEntity):
 
         self._attr_precision = PRECISION_TENTHS
 
+        """
+        The weatherAPI documentation defines pressure data pieces as pressure_mb
+        (Pressure in millibars) and pressure_in (Pressure in inches). But values
+        received turn out to be in Pa and Psi.
+        """
+
         if coordinator.is_metric:
-            self._attr_pressure_unit = PRESSURE_MBAR
+            self._attr_pressure_unit = PRESSURE_PA
             self._attr_temperature_unit = TEMP_CELSIUS
             self._attr_wind_speed_unit = SPEED_KILOMETERS_PER_HOUR
             self._attr_visibility_unit = LENGTH_KILOMETERS
         else:
-            self._attr_pressure_unit = PRESSURE_INHG
+            self._attr_pressure_unit = PRESSURE_PSI
             self._attr_temperature_unit = TEMP_FAHRENHEIT
             self._attr_wind_speed_unit = SPEED_MILES_PER_HOUR
             self._attr_visibility_unit = LENGTH_MILES
