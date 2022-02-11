@@ -353,7 +353,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
                 json.get(("temp_c" if is_metric else "temp_f"))
             ),
             ATTR_WEATHER_PRESSURE: to_float(
-                json.get(("precip_mm" if is_metric else "precip_in"))
+                json.get(("pressure_mb" if is_metric else "pressure_in"))
             ),
             ATTR_WEATHER_WIND_SPEED: to_float(
                 json.get(("wind_kph" if is_metric else "wind_mph"))
