@@ -1,7 +1,7 @@
 {
 	"name": "Home Assistant Custom Component Dev",
 	"context": "..",
-	"image": "ghcr.io/ludeeus/devcontainer/integration:stable",
+	"image": "ghcr.io/ludeeus/devcontainer/integration:latest",
 	"appPort": "9123:8123",
 	"postCreateCommand": "python3 -m pip install -r requirements.txt && container install",
 	"extensions": [
