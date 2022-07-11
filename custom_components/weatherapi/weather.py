@@ -72,15 +72,15 @@ class WeatherAPIEntity(CoordinatorEntity, WeatherEntity):
         """
 
         if coordinator.is_metric:
-            self._attr_pressure_unit = PRESSURE_PA
-            self._attr_temperature_unit = TEMP_CELSIUS
-            self._attr_wind_speed_unit = SPEED_KILOMETERS_PER_HOUR
-            self._attr_visibility_unit = LENGTH_KILOMETERS
+            self._attr_native_pressure_unit = PRESSURE_PA
+            self._attr_native_temperature_unit = TEMP_CELSIUS
+            self._attr_native_wind_speed_unit = SPEED_KILOMETERS_PER_HOUR
+            self._attr_native_visibility_unit = LENGTH_KILOMETERS
         else:
-            self._attr_pressure_unit = PRESSURE_PSI
-            self._attr_temperature_unit = TEMP_FAHRENHEIT
-            self._attr_wind_speed_unit = SPEED_MILES_PER_HOUR
-            self._attr_visibility_unit = LENGTH_MILES
+            self._attr_native_pressure_unit = PRESSURE_PSI
+            self._attr_native_temperature_unit = TEMP_FAHRENHEIT
+            self._attr_native_wind_speed_unit = SPEED_MILES_PER_HOUR
+            self._attr_native_visibility_unit = LENGTH_MILES
 
     @property
     def available(self) -> bool:
@@ -98,43 +98,43 @@ class WeatherAPIEntity(CoordinatorEntity, WeatherEntity):
         return self._name
 
     @property
-    def temperature(self) -> float | None:
-        """Return the temperature."""
+    def native_temperature(self) -> float | None:
+        """Return the current temperature."""
         return self.coordinator.data.get(ATTR_WEATHER_TEMPERATURE)
 
     @property
-    def pressure(self) -> float | None:
-        """Return the pressure."""
+    def native_pressure(self) -> float | None:
+        """Return the current pressure."""
         return self.coordinator.data.get(ATTR_WEATHER_PRESSURE)
 
     @property
     def humidity(self) -> float | None:
-        """Return the humidity."""
+        """Return the current humidity."""
         return self.coordinator.data.get(ATTR_WEATHER_HUMIDITY)
 
     @property
-    def wind_speed(self) -> float | None:
-        """Return the wind speed."""
+    def native_wind_speed(self) -> float | None:
+        """Return the current wind speed."""
         return self.coordinator.data.get(ATTR_WEATHER_WIND_SPEED)
 
     @property
     def wind_bearing(self) -> float | str | None:
-        """Return the wind bearing."""
+        """Return the current wind bearing."""
         return self.coordinator.data.get(ATTR_WEATHER_WIND_BEARING)
 
     @property
     def ozone(self) -> float | None:
-        """Return the ozone level."""
+        """Return the current ozone level."""
         return self.coordinator.data.get(ATTR_WEATHER_OZONE)
 
     @property
-    def visibility(self) -> float | None:
-        """Return the visibility."""
+    def native_visibility(self) -> float | None:
+        """Return the current visibility."""
         return self.coordinator.data.get(ATTR_WEATHER_VISIBILITY)
 
     @property
     def forecast(self) -> list[Forecast] | None:
-        """Return the forecast array."""
+        """Return the current forecast array."""
         return self.coordinator.data.get(DATA_FORECAST)
 
     @property
