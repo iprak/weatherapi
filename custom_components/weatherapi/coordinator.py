@@ -169,13 +169,12 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
     ) -> None:
         """Initialize."""
 
+        self._hass = hass
         self._api_key = config.api_key
         self._location = config.location
         self._forecast = config.forecast
         self._hourly_forecast = config.hourly_forecast
         self._name = config.name
-
-        self._is_metric = hass.config.units.is_metric
 
         super().__init__(
             hass,
@@ -187,7 +186,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
     @property
     def is_metric(self):
         """Determine if this is the metric unit system."""
-        return self._is_metric
+        return self._hass.config.units.is_metric
 
     @property
     def location(self):
@@ -256,7 +255,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
             _LOGGER.warning("No day forecast found in data.")
             return entries
 
-        is_metric = self._is_metric
+        is_metric = self.is_metric
 
         for forecastday in forecastday_array:
             # `date` is in YYYY-MM-DD format
@@ -342,7 +341,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
 
         _LOGGER.debug(json)
 
-        is_metric = self._is_metric
+        is_metric = self.is_metric
         condition = json.get("condition", {})
         air_quality = json.get("air_quality", {})
         is_day = to_int(json.get("is_day", "1")) == 1
