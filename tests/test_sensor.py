@@ -38,7 +38,7 @@ def test_uk_defra_index(hass, value, expected_band):
     )
     location_name = "XYZ"
 
-    coordinator_data = dict()
+    coordinator_data = {}
     coordinator_data[ATTR_AIR_QUALITY_UK_DEFRA_INDEX] = value
 
     mock_coordinator = Mock(data=coordinator_data, hass=hass)
