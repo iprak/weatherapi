@@ -183,6 +183,8 @@ class WeatherAPISensorEntity(CoordinatorEntity, SensorEntity):
     @staticmethod
     def convert_uk_defra_index_to_band(value: Number) -> str | None:
         """Convert UK DEFRA INDEX to band."""
+        if value is None:
+            return None
         if value >= 1:
             if value < 4:
                 return "Low"
