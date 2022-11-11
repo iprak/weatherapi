@@ -37,6 +37,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 import homeassistant.util.dt as dt_util
+from homeassistant.util.unit_system import METRIC_SYSTEM
 import requests
 
 from custom_components.weatherapi.const import (
@@ -186,7 +187,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
     @property
     def is_metric(self):
         """Determine if this is the metric unit system."""
-        return self._hass.config.units.is_metric
+        return self._hass.config.units is METRIC_SYSTEM
 
     @property
     def location(self):

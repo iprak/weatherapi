@@ -4,9 +4,7 @@
   "documentation": "https://github.com/iprak/weatherapi",
   "requirements": [],
   "dependencies": [],
-  "codeowners": [
-    "@iprak"
-  ],
+  "codeowners": ["@iprak"],
   "issue_tracker": "https://github.com/iprak/weatherapi/issues",
   "version": "0.10",
   "config_flow": true,

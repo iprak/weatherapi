@@ -1,4 +1,4 @@
-"""Test the helper method for writing tests. Copied from \home-assistant\core\tests\common.py """
+r"""Test the helper method for writing tests. Copied from home-assistant\core\tests\common.py."""
 from __future__ import annotations
 
 import asyncio
@@ -65,6 +65,7 @@ import homeassistant.util.dt as date_util
 from homeassistant.util.unit_system import METRIC_SYSTEM
 import homeassistant.util.uuid as uuid_util
 import homeassistant.util.yaml.loader as yaml_loader
+import voluptuous as vol
 
 _LOGGER = logging.getLogger(__name__)
 INSTANCES = []
