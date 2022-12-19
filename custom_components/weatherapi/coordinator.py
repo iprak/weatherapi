@@ -130,17 +130,15 @@ async def is_valid_api_key(hass: HomeAssistant, api_key: str) -> bool:
                 TIMEZONE_URL, timeout=10, headers=headers, params=params
             )
 
-            if response.status != HTTPStatus.OK:
-                _LOGGER.error("Timeout connecting to WeatherAPI end point")
+            json_data = await response.json()
+
+            error = json_data.get("error")
+            if error:
+                _LOGGER.error("WeatherAPI responded with error %s: %s", error.get("code"), error.get("message"))
                 return False
 
-            json = await response.json()
-
-            error = json.get("error")
-            if error is None:
-                return True
-
-            if error.get("code"):
+            if response.status != HTTPStatus.OK:
+                _LOGGER.error("WeatherAPI responded with HTTP error %s: %s", response.status, response.reason)
                 return False
 
             return True
@@ -224,11 +222,17 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
                     params=params,
                 )
 
-                if response.status != HTTPStatus.OK:
-                    _LOGGER.error("Timeout connecting to WeatherAPI end point")
-                    return
-
                 json_data = await response.json()
+
+                error = json_data.get("error")
+                if error:
+                    _LOGGER.error("WeatherAPI responded with error %s: %s", error.get("code"), error.get("message"))
+                    return False
+
+                if response.status != HTTPStatus.OK:
+                    _LOGGER.error("WeatherAPI responded with HTTP error %s: %s", response.status, response.reason)
+                    return False
+
                 result = self.parse_current(json_data.get("current"))
                 result[DATA_FORECAST] = (
                     self.parse_forecast(json_data.get("forecast"))
