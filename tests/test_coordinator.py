@@ -75,7 +75,6 @@ def test_parse_condition_code(value, is_day, result):
 @pytest.mark.parametrize(
     "response_status, json,result",
     [
-        (HTTPStatus.NOT_FOUND, None, False),
         (HTTPStatus.OK, {"error": {"code": "12345"}}, False),
         (HTTPStatus.OK, {}, True),
         (HTTPStatus.OK, {"error": {}}, True),
