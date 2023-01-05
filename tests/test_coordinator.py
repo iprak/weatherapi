@@ -9,6 +9,7 @@ from homeassistant.components.weather import (
     ATTR_CONDITION_SUNNY,
     Forecast,
 )
+from homeassistant.util.unit_system import IMPERIAL_SYSTEM, METRIC_SYSTEM
 import pytest
 
 from custom_components.weatherapi import coordinator
@@ -125,7 +126,7 @@ async def test_is_valid_api_key_raises_cannotconnect(hass):
 async def test_constructor(is_metric, coordinator_config):
     """Test coordinator."""
     hass = Mock()
-    hass.config.units.is_metric = is_metric
+    hass.config.units = METRIC_SYSTEM if is_metric else IMPERIAL_SYSTEM
 
     coord = coordinator.WeatherAPIUpdateCoordinator(hass, coordinator_config)
     assert coord.is_metric == is_metric
