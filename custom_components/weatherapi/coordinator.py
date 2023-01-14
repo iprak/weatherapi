@@ -134,11 +134,19 @@ async def is_valid_api_key(hass: HomeAssistant, api_key: str) -> bool:
 
             error = json_data.get("error")
             if error:
-                _LOGGER.error("WeatherAPI responded with error %s: %s", error.get("code"), error.get("message"))
+                _LOGGER.error(
+                    "WeatherAPI responded with error %s: %s",
+                    error.get("code"),
+                    error.get("message"),
+                )
                 return False
 
             if response.status != HTTPStatus.OK:
-                _LOGGER.error("WeatherAPI responded with HTTP error %s: %s", response.status, response.reason)
+                _LOGGER.error(
+                    "WeatherAPI responded with HTTP error %s: %s",
+                    response.status,
+                    response.reason,
+                )
                 return False
 
             return True
@@ -226,11 +234,19 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
 
                 error = json_data.get("error")
                 if error:
-                    _LOGGER.error("WeatherAPI responded with error %s: %s", error.get("code"), error.get("message"))
+                    _LOGGER.error(
+                        "WeatherAPI responded with error %s: %s",
+                        error.get("code"),
+                        error.get("message"),
+                    )
                     return False
 
                 if response.status != HTTPStatus.OK:
-                    _LOGGER.error("WeatherAPI responded with HTTP error %s: %s", response.status, response.reason)
+                    _LOGGER.error(
+                        "WeatherAPI responded with HTTP error %s: %s",
+                        response.status,
+                        response.reason,
+                    )
                     return False
 
                 result = self.parse_current(json_data.get("current"))
@@ -253,7 +269,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
             _LOGGER.warning("No forecast data received.")
             return entries
 
-        _LOGGER.debug(json)
+        _LOGGER.debug("Forecast %s=%s", self._name, json)
 
         forecastday_array = json.get("forecastday")
         if not forecastday_array:
@@ -283,7 +299,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
 
                 if hour_forecast_with_no_data > 0:
                     _LOGGER.warning(
-                        "%d hourly forecasts found for %s with no data.",
+                        "Found %d hourly forecasts for %s with no data.",
                         hour_forecast_with_no_data,
                         self._name,
                     )
