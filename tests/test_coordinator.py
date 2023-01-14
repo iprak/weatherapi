@@ -2,7 +2,7 @@
 
 import asyncio
 from http import HTTPStatus
-from unittest.mock import AsyncMock, Mock, call, patch
+from unittest.mock import AsyncMock, Mock, PropertyMock, call, patch
 
 from homeassistant.components.weather import (
     ATTR_CONDITION_CLEAR_NIGHT,
@@ -200,6 +200,7 @@ async def test_get_weather_hourly_forecast(
         coord = coordinator.WeatherAPIUpdateCoordinator(
             hass, coordinator_config_hourly_forecast
         )
+
         result = await coord.get_weather()
         assert result
         assert result[DATA_FORECAST]
@@ -216,8 +217,8 @@ async def test_get_weather_hourly_forecast_missing_data(
 
     hour_forecast_data = mock_json["forecast"]["forecastday"][0]["hour"]
     # Delete `time` element from 2 hourly forecast nodes
-    del hour_forecast_data[0]["time"]
-    del hour_forecast_data[23]["time"]
+    del hour_forecast_data[0]["time_epoch"]
+    del hour_forecast_data[23]["time_epoch"]
 
     response.json = AsyncMock(return_value=mock_json)
     session.get = AsyncMock(return_value=response)
@@ -235,7 +236,7 @@ async def test_get_weather_hourly_forecast_missing_data(
         assert result[DATA_FORECAST]
         assert len(result[DATA_FORECAST]) == 22
 
-        assert len(coordinator._LOGGER.warning.mock_calls) == 1
+        assert len(coordinator.get_logger().warning.mock_calls) == 1
 
 
 async def test_get_weather_no_forecast_data(hass, coordinator_config):
@@ -287,82 +288,106 @@ async def test_get_weather_no_forecastday_data(hass, coordinator_config):
 
         assert not result[DATA_FORECAST]  # No data found
 
-        assert len(coordinator._LOGGER.warning.mock_calls) == 2
-        assert coordinator._LOGGER.warning.mock_calls[0] == call(
+        assert len(coordinator.get_logger().warning.mock_calls) == 2
+        assert coordinator.get_logger().warning.mock_calls[0] == call(
             "No current data received."
         )
-        assert coordinator._LOGGER.warning.mock_calls[1] == call(
+        assert coordinator.get_logger().warning.mock_calls[1] == call(
             "No day forecast found in data."
         )
 
 
-def test_parse_hour_forecast():
+sample_data_for_parse_hour_forecast = {
+    "time_epoch": 1637744400,
+    "time": "2021-11-24 03:00",
+    "temp_c": 4.9,
+    "temp_f": 40.8,
+    "is_day": 0,
+    "condition": {
+        "text": "Clear",
+        "icon": "//cdn.weatherapi.com/weather/64x64/night/113.png",
+        "code": 1000,
+    },
+    "wind_mph": 19.0,
+    "wind_kph": 30.6,
+    "wind_degree": 196,
+    "wind_dir": "SSW",
+    "pressure_mb": 1016.0,
+    "pressure_in": 30.0,
+    "precip_mm": 0.0,
+    "precip_in": 0.0,
+    "humidity": 53,
+    "cloud": 3,
+    "feelslike_c": -0.1,
+    "feelslike_f": 31.8,
+    "windchill_c": -0.1,
+    "windchill_f": 31.8,
+    "heatindex_c": 4.9,
+    "heatindex_f": 40.8,
+    "dewpoint_c": -3.7,
+    "dewpoint_f": 25.3,
+    "will_it_rain": 0,
+    "chance_of_rain": 0.2,
+    "will_it_snow": 0,
+    "chance_of_snow": 0,
+    "vis_km": 10.0,
+    "vis_miles": 6.0,
+    "gust_mph": 27.7,
+    "gust_kph": 44.6,
+    "uv": 1.0,
+}
+
+
+@pytest.mark.parametrize(
+    "is_metric, zone, data, expected",
+    [
+        (True, "UTC", None, None),
+        (True, "UTC", {}, None),
+        (
+            True,
+            "UTC",
+            sample_data_for_parse_hour_forecast,
+            Forecast(
+                datetime="2021-11-24T09:00:00+00:00",
+                temperature=4.9,
+                precipitation_probability=0.2,
+                wind_speed=19.0,
+                condition=ATTR_CONDITION_CLEAR_NIGHT,
+            ),
+        ),
+        (
+            True,
+            "US/Eastern",
+            sample_data_for_parse_hour_forecast,
+            Forecast(
+                datetime="2021-11-24T04:00:00-05:00",
+                temperature=4.9,
+                precipitation_probability=0.2,
+                wind_speed=19.0,
+                condition=ATTR_CONDITION_CLEAR_NIGHT,
+            ),
+        ),
+        (
+            False,
+            "UTC",
+            sample_data_for_parse_hour_forecast,
+            Forecast(
+                datetime="2021-11-24T09:00:00+00:00",
+                temperature=40.8,
+                precipitation_probability=0.2,
+                wind_speed=30.6,
+                condition=ATTR_CONDITION_CLEAR_NIGHT,
+            ),
+        ),
+    ],
+)
+def test_parse_hour_forecast(hass, coordinator_config, is_metric, zone, data, expected):
     """Test parse_hour_forecast function."""
-    assert (
-        coordinator.WeatherAPIUpdateCoordinator.parse_hour_forecast(None, True) is None
-    )
-    # No `time` defined
-    assert coordinator.WeatherAPIUpdateCoordinator.parse_hour_forecast({}, True) is None
 
-    data = {
-        "time_epoch": 1637744400,
-        "time": "2021-11-24 03:00",
-        "temp_c": 4.9,
-        "temp_f": 40.8,
-        "is_day": 0,
-        "condition": {
-            "text": "Clear",
-            "icon": "//cdn.weatherapi.com/weather/64x64/night/113.png",
-            "code": 1000,
-        },
-        "wind_mph": 19.0,
-        "wind_kph": 30.6,
-        "wind_degree": 196,
-        "wind_dir": "SSW",
-        "pressure_mb": 1016.0,
-        "pressure_in": 30.0,
-        "precip_mm": 0.0,
-        "precip_in": 0.0,
-        "humidity": 53,
-        "cloud": 3,
-        "feelslike_c": -0.1,
-        "feelslike_f": 31.8,
-        "windchill_c": -0.1,
-        "windchill_f": 31.8,
-        "heatindex_c": 4.9,
-        "heatindex_f": 40.8,
-        "dewpoint_c": -3.7,
-        "dewpoint_f": 25.3,
-        "will_it_rain": 0,
-        "chance_of_rain": 0.2,
-        "will_it_snow": 0,
-        "chance_of_snow": 0,
-        "vis_km": 10.0,
-        "vis_miles": 6.0,
-        "gust_mph": 27.7,
-        "gust_kph": 44.6,
-        "uv": 1.0,
-    }
-    expected = Forecast(
-        datetime="2021-11-24T03:00:00+00:00",
-        temperature=4.9,
-        precipitation_probability=0.2,
-        wind_speed=19.0,
-        condition=ATTR_CONDITION_CLEAR_NIGHT,
-    )
-    assert (
-        coordinator.WeatherAPIUpdateCoordinator.parse_hour_forecast(data, True)
-        == expected
-    )
+    coord = coordinator.WeatherAPIUpdateCoordinator(hass, coordinator_config)
+    coord.populate_time_zone(zone)
 
-    expected = Forecast(
-        datetime="2021-11-24T03:00:00+00:00",
-        temperature=40.8,
-        precipitation_probability=0.2,
-        wind_speed=30.6,
-        condition=ATTR_CONDITION_CLEAR_NIGHT,
-    )
-    assert (
-        coordinator.WeatherAPIUpdateCoordinator.parse_hour_forecast(data, False)
-        == expected
-    )
+    is_metric_mock = PropertyMock(return_value=is_metric)
+    coordinator.WeatherAPIUpdateCoordinator.is_metric = is_metric_mock
+
+    assert coord.parse_hour_forecast(data) == expected

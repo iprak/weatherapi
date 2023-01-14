@@ -32,11 +32,15 @@ ATTR_AIR_QUALITY_UK_DEFRA_INDEX_BAND: Final = "band"
 
 DATA_FORECAST: Final = "forecast"
 
+CONFIG_ADD_SENSORS: Final = "add_sensors"
 CONFIG_FORECAST: Final = "forecast"
 CONFIG_HOURLY_FORECAST: Final = "hourly_forecast"
+CONFIG_IGNORE_PAST_HOUR: Final = "ignore_past_hour"
 
+DEFAULT_ADD_SENSORS: Final = True
 DEFAULT_FORECAST: Final = True
 DEFAULT_HOURLY_FORECAST: Final = False
+DEFAULT_IGNORE_PAST_HOUR: Final = True
 
 # https://www.weatherapi.com/docs/weather_conditions.json
 CONDITION_MAP: Final[dict[str, list[int]]] = {

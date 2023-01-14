@@ -12,10 +12,14 @@ import voluptuous as vol
 from custom_components.weatherapi.coordinator import CannotConnect, is_valid_api_key
 
 from .const import (  # pylint:disable=unused-import
+    CONFIG_ADD_SENSORS,
     CONFIG_FORECAST,
     CONFIG_HOURLY_FORECAST,
+    CONFIG_IGNORE_PAST_HOUR,
+    DEFAULT_ADD_SENSORS,
     DEFAULT_FORECAST,
     DEFAULT_HOURLY_FORECAST,
+    DEFAULT_IGNORE_PAST_HOUR,
     DOMAIN,
 )
 
@@ -49,6 +53,13 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         data_schema = vol.Schema(
             {
                 vol.Required(
+                    CONFIG_ADD_SENSORS,
+                    default=self.config_entry.options.get(
+                        CONFIG_ADD_SENSORS,
+                        DEFAULT_ADD_SENSORS,
+                    ),
+                ): bool,
+                vol.Required(
                     CONFIG_FORECAST,
                     default=self.config_entry.options.get(
                         CONFIG_FORECAST,
@@ -60,6 +71,13 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     default=self.config_entry.options.get(
                         CONFIG_HOURLY_FORECAST,
                         DEFAULT_HOURLY_FORECAST,
+                    ),
+                ): bool,
+                vol.Required(
+                    CONFIG_IGNORE_PAST_HOUR,
+                    default=self.config_entry.options.get(
+                        CONFIG_IGNORE_PAST_HOUR,
+                        DEFAULT_IGNORE_PAST_HOUR,
                     ),
                 ): bool,
             }

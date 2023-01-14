@@ -31,6 +31,7 @@ def coordinator_config():
         location="latitude,longitude",
         name="Place",
         update_interval=timedelta(minutes=UPDATE_INTERVAL_MINUTES),
+        ignore_past_forecast=False,  # Our test data has old timestamps
     )
 
 
@@ -43,6 +44,7 @@ def coordinator_config_hourly_forecast():
         name="Place",
         update_interval=timedelta(minutes=UPDATE_INTERVAL_MINUTES),
         hourly_forecast=True,
+        ignore_past_forecast=False,  # Our test data has old timestamps
     )
 
 

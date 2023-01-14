@@ -16,8 +16,10 @@ from homeassistant.core import HomeAssistant
 from custom_components.weatherapi.const import (
     CONFIG_FORECAST,
     CONFIG_HOURLY_FORECAST,
+    CONFIG_IGNORE_PAST_HOUR,
     DEFAULT_FORECAST,
     DEFAULT_HOURLY_FORECAST,
+    DEFAULT_IGNORE_PAST_HOUR,
     DOMAIN,
     UPDATE_INTERVAL_MINUTES,
 )
@@ -45,6 +47,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         forecast=entry.options.get(CONFIG_FORECAST, DEFAULT_FORECAST),
         hourly_forecast=entry.options.get(
             CONFIG_HOURLY_FORECAST, DEFAULT_HOURLY_FORECAST
+        ),
+        ignore_past_forecast=entry.options.get(
+            CONFIG_IGNORE_PAST_HOUR, DEFAULT_IGNORE_PAST_HOUR
         ),
     )
 

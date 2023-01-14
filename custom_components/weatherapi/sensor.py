@@ -39,6 +39,8 @@ from .const import (
     ATTR_AIR_QUALITY_UK_DEFRA_INDEX_BAND,
     ATTR_AIR_QUALITY_US_EPA_INDEX,
     ATTR_UV,
+    CONFIG_ADD_SENSORS,
+    DEFAULT_ADD_SENSORS,
     DOMAIN as WEATHERAPI_DOMAIN,
 )
 
@@ -112,10 +114,14 @@ async def async_setup_entry(
 ) -> None:
     """Add sensor devices."""
 
+    if not entry.options.get(CONFIG_ADD_SENSORS, DEFAULT_ADD_SENSORS):
+        return
+
     location_name: str = entry.data[CONF_NAME]
     coordinator: WeatherAPIUpdateCoordinator = hass.data[WEATHERAPI_DOMAIN][
         entry.entry_id
     ]
+
     entities = [
         WeatherAPISensorEntity(location_name, coordinator, description)
         for description in SENSOR_DESCRIPTIONS

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
-from datetime import timedelta
+from datetime import datetime, timedelta
 from http import HTTPStatus
 import logging
 from typing import Any
@@ -38,6 +38,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 import homeassistant.util.dt as dt_util
 from homeassistant.util.unit_system import METRIC_SYSTEM
+import pytz
 import requests
 
 from custom_components.weatherapi.const import (
@@ -47,6 +48,9 @@ from custom_components.weatherapi.const import (
     ATTR_WEATHER_CONDITION,
     CONDITION_MAP,
     DATA_FORECAST,
+    DEFAULT_FORECAST,
+    DEFAULT_HOURLY_FORECAST,
+    DEFAULT_IGNORE_PAST_HOUR,
     FORECAST_DAYS,
 )
 
@@ -56,6 +60,11 @@ BASE_URL = "https://api.weatherapi.com/v1"
 TIMEZONE_URL = f"{BASE_URL}/timezone.json"
 CURRENT_URL = f"{BASE_URL}/current.json"
 FORECAST_URL = f"{BASE_URL}/forecast.json"
+
+
+def get_logger():
+    """Get the current logger."""
+    return _LOGGER
 
 
 def to_float(value: str | None) -> float | None:
@@ -164,8 +173,9 @@ class WeatherAPIUpdateCoordinatorConfig:
     location: str
     name: str
     update_interval: timedelta
-    forecast: bool = True
-    hourly_forecast: bool = False
+    forecast: bool = DEFAULT_FORECAST
+    hourly_forecast: bool = DEFAULT_HOURLY_FORECAST
+    ignore_past_forecast: bool = DEFAULT_IGNORE_PAST_HOUR
 
 
 class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
@@ -182,6 +192,8 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
         self._forecast = config.forecast
         self._hourly_forecast = config.hourly_forecast
         self._name = config.name
+        self._ignore_past_forecast = config.ignore_past_forecast
+        self._forecast_tz = None
 
         super().__init__(
             hass,
@@ -249,6 +261,12 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
                     )
                     return False
 
+                # Using timeZome from location falling back to local timezone
+                location = json_data.get("location", {})
+                self.populate_time_zone(
+                    location.get("tz_id", self.hass.config.time_zone)
+                )
+
                 result = self.parse_current(json_data.get("current"))
                 result[DATA_FORECAST] = (
                     self.parse_forecast(json_data.get("forecast"))
@@ -260,6 +278,10 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
         except (asyncio.TimeoutError, aiohttp.ClientError) as exception:
             _LOGGER.error("Timeout calling WeatherAPI end point: %s", exception)
             raise CannotConnect from exception
+
+    def populate_time_zone(self, zone: str):
+        """Define timzeone for the forecasts."""
+        self._forecast_tz = pytz.timezone(zone)
 
     def parse_forecast(self, json):
         """Parse the forecast JSON data."""
@@ -288,10 +310,10 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
                 hour_array = forecastday.get("hour")
                 hour_forecast_with_no_data = 0
 
-                for hour in hour_array:
+                for hour_json in hour_array:
                     # Skip hourly forecast if it is empty .. `time` is missing
 
-                    hour_entry = self.parse_hour_forecast(hour, is_metric)
+                    hour_entry = self.parse_hour_forecast(hour_json)
                     if hour_entry is None:
                         hour_forecast_with_no_data += 1
                     else:
@@ -331,26 +353,35 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
         _LOGGER.info("Loaded %s forecast values for %s.", len(entries), self._name)
         return entries
 
-    @staticmethod
-    def parse_hour_forecast(data: any, is_metric: bool) -> Forecast:
+    def parse_hour_forecast(self, data: any) -> Forecast:
         """Parse hour forecast data."""
 
         if data is None:
             return None
 
-        # Sometimes the hourly forecast just has empty condition, skip if `time` element is missing.
-        hour_forecast_time = data.get("time")
-        if hour_forecast_time is None:
+        # Sometimes the hourly forecast just has empty content, skip if `time_epoch` element is missing.
+        time_epoch = data.get("time_epoch")
+        if time_epoch is None:
+            return None
+
+        now_hour = datetime.now().replace(minute=0, second=0, microsecond=0)
+        now_hour_ts = now_hour.timestamp()
+
+        if self._ignore_past_forecast and (time_epoch < now_hour_ts):
+            _LOGGER.debug("%s: Ignoring past forecast", self._location)
             return None
 
         condition = data.get("condition", {})
-        hour_forecast_time = datetime_to_iso(hour_forecast_time)
+        hour_forecast_time = datetime.fromtimestamp(
+            time_epoch, tz=self._forecast_tz
+        ).isoformat()
+
         is_day = to_int(data.get("is_day", "1")) == 1
         return Forecast(
             datetime=hour_forecast_time,
-            temperature=to_float(data.get("temp_c" if is_metric else "temp_f")),
+            temperature=to_float(data.get("temp_c" if self.is_metric else "temp_f")),
             precipitation_probability=data.get("chance_of_rain"),
-            wind_speed=to_float(data.get("wind_mph" if is_metric else "wind_kph")),
+            wind_speed=to_float(data.get("wind_mph" if self.is_metric else "wind_kph")),
             condition=parse_condition_code(condition.get("code"), is_day),
         )
 

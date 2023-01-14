@@ -1,29 +1,31 @@
 {
-    "config": {
-        "error": {
-            "cannot_connect": "Failed to connect",
-            "invalid_api_key": "Invalid API key"
-        },
-        "step": {
-            "user": {
-                "data": {
-                    "api_key": "API Key",
-                    "latitude": "Latitude",
-                    "longitude": "Longitude",
-                    "name": "Name"
-                },
-                "title": "WeatherAPI"
-            }
-        }
+  "config": {
+    "error": {
+      "cannot_connect": "Failed to connect",
+      "invalid_api_key": "Invalid API key"
     },
-    "options": {
-        "step": {
-            "init": {
-                "data": {
-                    "forecast": "Generate forecast",
-                    "hourly_forecast": "Generate hourly forecast instead of daily"
-                }
-            }
-        }
+    "step": {
+      "user": {
+        "data": {
+          "api_key": "API Key",
+          "latitude": "Latitude",
+          "longitude": "Longitude",
+          "name": "Name"
+        },
+        "title": "WeatherAPI"
+      }
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "add_sensors": "Add weather related sensors",
+          "forecast": "Generate forecast",
+          "hourly_forecast": "Generate hourly forecast instead of daily",
+          "ignore_past_hour": "Do not include forecast for past hours"
+        }
+      }
+    }
+  }
 }
