@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from tokenize import Number
-from typing import Final
 
 from homeassistant.components.air_quality import (
     ATTR_CO,
@@ -40,11 +39,13 @@ from .const import (
     ATTR_AIR_QUALITY_UK_DEFRA_INDEX_BAND,
     ATTR_AIR_QUALITY_US_EPA_INDEX,
     ATTR_UV,
+    CONFIG_ADD_SENSORS,
+    DEFAULT_ADD_SENSORS,
     DOMAIN as WEATHERAPI_DOMAIN,
 )
 
 # https://www.weatherapi.com/docs/
-SENSOR_DESCRIPTIONS: Final = (
+SENSOR_DESCRIPTIONS: tuple[SensorEntityDescription, ...] = (
     SensorEntityDescription(
         key=ATTR_CO,
         name="CO",
@@ -113,10 +114,14 @@ async def async_setup_entry(
 ) -> None:
     """Add sensor devices."""
 
+    if not entry.options.get(CONFIG_ADD_SENSORS, DEFAULT_ADD_SENSORS):
+        return
+
     location_name: str = entry.data[CONF_NAME]
     coordinator: WeatherAPIUpdateCoordinator = hass.data[WEATHERAPI_DOMAIN][
         entry.entry_id
     ]
+
     entities = [
         WeatherAPISensorEntity(location_name, coordinator, description)
         for description in SENSOR_DESCRIPTIONS
@@ -128,6 +133,9 @@ async def async_setup_entry(
 class WeatherAPISensorEntity(CoordinatorEntity, SensorEntity):
     """Define a WeatherAPI air quality sensor."""
 
+    _attr_has_entity_name = True
+    _attr_attribution = ATTRIBUTION
+
     def __init__(
         self,
         location_name: str,
@@ -137,31 +145,20 @@ class WeatherAPISensorEntity(CoordinatorEntity, SensorEntity):
         """Initialize."""
         super().__init__(coordinator)
 
-        self._name = f"{location_name} {description.name}"
+        name = f"{location_name} {description.name}"
         self.entity_description = description
 
         entity_id_format = description.key + ".{}"
         self.entity_id = generate_entity_id(
-            entity_id_format, f"{WEATHERAPI_DOMAIN}_{self._name}", hass=coordinator.hass
+            entity_id_format, f"{WEATHERAPI_DOMAIN}_{name}", hass=coordinator.hass
         )
 
-        self._unique_id = f"{self.coordinator.location}_{self._name}"
-        self._attr_attribution = ATTRIBUTION
+        self._attr_unique_id = f"{self.coordinator.location}_{name}"
 
     @property
     def available(self) -> bool:
         """Return if weather data is available."""
         return self.coordinator.data is not None
-
-    @property
-    def unique_id(self) -> str:
-        """Return a unique ID."""
-        return self._unique_id
-
-    @property
-    def name(self) -> str:
-        """Return the name of the entity."""
-        return self._name
 
     @property
     def native_value(self) -> StateType:
