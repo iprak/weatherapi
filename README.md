@@ -17,8 +17,13 @@ You should see 3 entities generated for a location starting with the id:
 * You should see one weather entity and some air quality/UV index entities. All entity ids will start as `weather/sensor.weatherapi_location`. Entity id can be adjusted from `Entities` page.
 
 # Configuration
-The integration can be configured to generate hourly forecast using the `CONFIGURE` button on the Integrations page.
+The integration can be configured using the `CONFIGURE` button on the Integrations page.
 
+![image](https://user-images.githubusercontent.com/6459774/212574703-8942d9f5-bbfe-4870-a5d5-96d72fefdd7c.png)
+
+* Configure generation of weather related sensors. If unchecked, the sensors would become disabled and would need to be manually deleted.
+* Configure generation of forecast and hourly forecast.
+* Configure hourly forecast to start at midnight or the current hour.
 
 
 # Breaking Changes
