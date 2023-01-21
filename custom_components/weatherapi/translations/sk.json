@@ -1,0 +1,31 @@
+{
+  "config": {
+    "error": {
+      "cannot_connect": "Nepodarilo sa pripojiť",
+      "invalid_api_key": "Neplatný kľúč API"
+    },
+    "step": {
+      "user": {
+        "data": {
+          "api_key": "API kľúč",
+          "latitude": "Zemepisná šírka",
+          "longitude": "Zemepisná dĺžka",
+          "name": "Názov"
+        },
+        "title": "WeatherAPI"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "add_sensors": "Pridajte senzory súvisiace s počasím",
+          "forecast": "Generovať predpoveď",
+          "hourly_forecast": "Generujte hodinovú predpoveď namiesto dennej",
+          "ignore_past_hour": "Nezahŕňajte predpoveď na minulé hodiny"
+        }
+      }
+    }
+  }
+}
