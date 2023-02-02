@@ -1,7 +1,4 @@
 {
     "name": "WeatherAPI",
-    "domains": [
-        "weather"
-    ],
     "render_readme": true
 }
