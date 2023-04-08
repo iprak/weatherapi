@@ -44,6 +44,7 @@ import requests
 from custom_components.weatherapi.const import (
     ATTR_AIR_QUALITY_UK_DEFRA_INDEX,
     ATTR_AIR_QUALITY_US_EPA_INDEX,
+    ATTR_REPORTED_CONDITION,
     ATTR_UV,
     ATTR_WEATHER_CONDITION,
     CONDITION_MAP,
@@ -329,6 +330,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
             else:
                 condition = day.get("condition", {})
                 is_day = to_int(day.get("is_day", "1")) == 1
+                condition_code = condition.get("code")
 
                 day_entry = Forecast(
                     datetime=datetime_to_iso(forecastday.get("date")),
@@ -345,8 +347,9 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
                     wind_speed=to_float(
                         day.get("maxwind_kph" if is_metric else "maxwind_mph")
                     ),
-                    condition=parse_condition_code(condition.get("code"), is_day),
+                    condition=parse_condition_code(condition_code, is_day),
                 )
+                day_entry[ATTR_REPORTED_CONDITION] = condition_code
 
                 entries.append(day_entry)
 
@@ -377,13 +380,17 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
         ).isoformat()
 
         is_day = to_int(data.get("is_day", "1")) == 1
-        return Forecast(
+        condition_code = condition.get("code")
+
+        value = Forecast(
             datetime=hour_forecast_time,
             temperature=to_float(data.get("temp_c" if self.is_metric else "temp_f")),
             precipitation_probability=data.get("chance_of_rain"),
             wind_speed=to_float(data.get("wind_mph" if self.is_metric else "wind_kph")),
-            condition=parse_condition_code(condition.get("code"), is_day),
+            condition=parse_condition_code(condition_code, is_day),
         )
+        value[ATTR_REPORTED_CONDITION] = condition_code
+        return value
 
     def parse_current(self, json):
         """Parse the current weather JSON data."""
@@ -397,6 +404,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
         condition = json.get("condition", {})
         air_quality = json.get("air_quality", {})
         is_day = to_int(json.get("is_day", "1")) == 1
+        condition_code = condition.get("code")
 
         return {
             ATTR_WEATHER_HUMIDITY: to_float(json.get("humidity")),
@@ -414,7 +422,8 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
                 json.get("vis_km" if is_metric else "vis_miles")
             ),
             ATTR_UV: to_float(json.get("uv")),
-            ATTR_WEATHER_CONDITION: parse_condition_code(condition.get("code"), is_day),
+            ATTR_REPORTED_CONDITION: condition_code,
+            ATTR_WEATHER_CONDITION: parse_condition_code(condition_code, is_day),
             ATTR_WEATHER_OZONE: to_float(air_quality.get("o3")),
             # Air quality data pieces
             ATTR_CO: to_float(air_quality.get("co")),

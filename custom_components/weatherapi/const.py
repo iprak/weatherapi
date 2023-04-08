@@ -29,6 +29,7 @@ ATTR_UV: Final = "uv"
 ATTR_AIR_QUALITY_US_EPA_INDEX: Final = "us-epa-index"
 ATTR_AIR_QUALITY_UK_DEFRA_INDEX: Final = "gb-defra-index"
 ATTR_AIR_QUALITY_UK_DEFRA_INDEX_BAND: Final = "band"
+ATTR_REPORTED_CONDITION: Final = "reported_condition"
 
 DATA_FORECAST: Final = "forecast"
 
