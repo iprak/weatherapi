@@ -62,7 +62,6 @@ CONDITION_MAP: Final[dict[str, list[int]]] = {
     ],
     ATTR_CONDITION_PARTLYCLOUDY: [1003],
     ATTR_CONDITION_POURING: [
-        1171,  # Heavy freezing drizzle
         1192,  # Heavy rain at times
         1195,  # Heavy rain
         1243,  # Moderate or heavy rain shower
@@ -72,7 +71,6 @@ CONDITION_MAP: Final[dict[str, list[int]]] = {
         1063,  # Patchy rain possible
         1150,  # Patchy light drizzle
         1153,  # Light drizzle
-        1168,  # Freezing drizzle
         1180,  # Patchy light rain
         1183,  # Light rain
         1186,  # Moderate rain at times
@@ -81,19 +79,22 @@ CONDITION_MAP: Final[dict[str, list[int]]] = {
     ],
     ATTR_CONDITION_SNOWY: [
         1066,  # Patchy snow possible
-        1069,  # Patchy sleet possible
         1114,  # Blowing snow
         1117,  # Blizzard
         1210,  # Patchy light snow
         1213,  # Light snow
         1216,  # Patchy moderate snow
+        1219,  # Moderate snow
         1222,  # Patchy heavy snow
         1225,  # Heavy snow
         1279,  # Patchy light snow with thunder
         1282,  # Moderate or heavy snow with thunder
     ],
     ATTR_CONDITION_SNOWY_RAINY: [
+        1069,  # Patchy sleet possible
         1072,  # Patchy freezing drizzle possible
+        1168,  # Freezing drizzle
+        1171,  # Heavy freezing drizzle
         1198,  # Light freezing rain
         1201,  # Moderate or heavy freezing rain
         1204,  # Light sleet
