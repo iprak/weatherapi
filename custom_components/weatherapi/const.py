@@ -52,6 +52,8 @@ CONDITION_MAP: Final[dict[str, list[int]]] = {
     ATTR_CONDITION_FOG: [1030, 1135, 1147],  # Mist, Fog, Freezing fog
     ATTR_CONDITION_HAIL: [
         1237,  # Ice pellets
+        1261,  # Light showers of ice pellets
+        1264,  # Moderate or heavy showers of ice pellets
     ],
     ATTR_CONDITION_LIGHTNING: [1087],  # Thundery outbreaks possible
     ATTR_CONDITION_LIGHTNING_RAINY: [
@@ -100,8 +102,6 @@ CONDITION_MAP: Final[dict[str, list[int]]] = {
         1252,  # Moderate or heavy sleet showers
         1255,  # Light snow showers
         1258,  # Moderate or heavy snow showers
-        1261,  # Light showers of ice pellets
-        1264,  # Moderate or heavy showers of ice pellets
     ],
     ATTR_CONDITION_SUNNY: [1000],  # Sunny
     # ATTR_CONDITION_WINDY
