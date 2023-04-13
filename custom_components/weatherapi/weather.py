@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any, Mapping
+
 from homeassistant.components.weather import (
     ATTR_WEATHER_HUMIDITY,
     ATTR_WEATHER_OZONE,
@@ -35,7 +37,12 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from custom_components.weatherapi.const import ATTRIBUTION
 
 from . import WeatherAPIUpdateCoordinator
-from .const import ATTR_WEATHER_CONDITION, DATA_FORECAST, DOMAIN
+from .const import (
+    ATTR_REPORTED_CONDITION,
+    ATTR_WEATHER_CONDITION,
+    DATA_FORECAST,
+    DOMAIN,
+)
 
 ENTITY_ID_FORMAT = WEATHER_DOMAIN + ".{}"
 
@@ -141,3 +148,10 @@ class WeatherAPIEntity(CoordinatorEntity, WeatherEntity):
     def condition(self) -> str | None:
         """Return the current condition."""
         return self.coordinator.data.get(ATTR_WEATHER_CONDITION)
+
+    @property
+    def extra_state_attributes(self) -> Mapping[str, Any] | None:
+        """Return additional specific state attributes."""
+        return {
+            ATTR_REPORTED_CONDITION: self.coordinator.data.get(ATTR_REPORTED_CONDITION)
+        }
