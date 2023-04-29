@@ -37,7 +37,6 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 import homeassistant.util.dt as dt_util
-from homeassistant.util.unit_system import METRIC_SYSTEM
 import pytz
 import requests
 
@@ -204,11 +203,6 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
         )
 
     @property
-    def is_metric(self):
-        """Determine if this is the metric unit system."""
-        return self._hass.config.units is METRIC_SYSTEM
-
-    @property
     def location(self):
         """Return the location used for data."""
         return self._location
@@ -299,8 +293,6 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
             _LOGGER.warning("No day forecast found in data.")
             return entries
 
-        is_metric = self.is_metric
-
         for forecastday in forecastday_array:
             # `date` is in YYYY-MM-DD format
             # `date_epoch` is unix time
@@ -333,21 +325,15 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
                 condition_code = condition.get("code")
 
                 day_entry = Forecast(
-                    datetime=datetime_to_iso(forecastday.get("date")),
-                    temperature=to_float(
-                        day.get("maxtemp_c" if is_metric else "maxtemp_f")
-                    ),
-                    templow=to_float(
-                        day.get("mintemp_c" if is_metric else "mintemp_f")
-                    ),
-                    precipitation=to_float(
-                        day.get("totalprecip_mm" if is_metric else "totalprecip_in")
-                    ),
-                    precipitation_probability=day.get("daily_chance_of_rain"),
-                    wind_speed=to_float(
-                        day.get("maxwind_kph" if is_metric else "maxwind_mph")
-                    ),
                     condition=parse_condition_code(condition_code, is_day),
+                    datetime=datetime_to_iso(forecastday.get("date")),
+                    precipitation_probability=day.get("daily_chance_of_rain"),
+                    native_precipitation=to_float(day.get("totalprecip_mm")),
+                    # There is no pressure element
+                    native_temperature=to_float(day.get("maxtemp_c")),
+                    native_templow=to_float(day.get("mintemp_c")),
+                    # There is no wind_dir
+                    naive_wind_speed=to_float(day.get("maxwind_kph")),
                 )
                 day_entry[ATTR_REPORTED_CONDITION] = condition_code
 
@@ -383,11 +369,14 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
         condition_code = condition.get("code")
 
         value = Forecast(
-            datetime=hour_forecast_time,
-            temperature=to_float(data.get("temp_c" if self.is_metric else "temp_f")),
-            precipitation_probability=data.get("chance_of_rain"),
-            wind_speed=to_float(data.get("wind_mph" if self.is_metric else "wind_kph")),
             condition=parse_condition_code(condition_code, is_day),
+            datetime=hour_forecast_time,
+            precipitation_probability=data.get("chance_of_rain"),
+            native_precipitation=to_float(data.get("precip_mm")),
+            native_pressure=to_float(data.get("pressure_mb")),
+            native_temperature=to_float(data.get("temp_c")),
+            wind_bearing=data.get("wind_dir"),
+            native_wind_speed=to_float(data.get("wind_kph")),
         )
         value[ATTR_REPORTED_CONDITION] = condition_code
         return value
@@ -400,7 +389,6 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
 
         _LOGGER.debug(json)
 
-        is_metric = self.is_metric
         condition = json.get("condition", {})
         air_quality = json.get("air_quality", {})
         is_day = to_int(json.get("is_day", "1")) == 1
@@ -408,19 +396,11 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
 
         return {
             ATTR_WEATHER_HUMIDITY: to_float(json.get("humidity")),
-            ATTR_WEATHER_TEMPERATURE: to_float(
-                json.get(("temp_c" if is_metric else "temp_f"))
-            ),
-            ATTR_WEATHER_PRESSURE: to_float(
-                json.get(("pressure_mb" if is_metric else "pressure_in"))
-            ),
-            ATTR_WEATHER_WIND_SPEED: to_float(
-                json.get(("wind_kph" if is_metric else "wind_mph"))
-            ),
+            ATTR_WEATHER_TEMPERATURE: to_float(json.get("temp_c")),
+            ATTR_WEATHER_PRESSURE: to_float(json.get("pressure_mb")),
+            ATTR_WEATHER_WIND_SPEED: to_float(json.get("wind_kph")),
             ATTR_WEATHER_WIND_BEARING: json.get("wind_degree"),
-            ATTR_WEATHER_VISIBILITY: to_float(
-                json.get("vis_km" if is_metric else "vis_miles")
-            ),
+            ATTR_WEATHER_VISIBILITY: to_float(json.get("vis_km")),
             ATTR_UV: to_float(json.get("uv")),
             ATTR_REPORTED_CONDITION: condition_code,
             ATTR_WEATHER_CONDITION: parse_condition_code(condition_code, is_day),

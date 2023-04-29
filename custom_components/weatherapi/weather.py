@@ -19,15 +19,11 @@ from homeassistant.components.weather import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_NAME,
-    LENGTH_KILOMETERS,
-    LENGTH_MILES,
     PRECISION_TENTHS,
-    PRESSURE_PA,
-    PRESSURE_PSI,
-    SPEED_KILOMETERS_PER_HOUR,
-    SPEED_MILES_PER_HOUR,
-    TEMP_CELSIUS,
-    TEMP_FAHRENHEIT,
+    UnitOfPrecipitationDepth,
+    UnitOfPressure,
+    UnitOfSpeed,
+    UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import generate_entity_id
@@ -59,6 +55,13 @@ async def async_setup_entry(
 class WeatherAPIEntity(CoordinatorEntity, WeatherEntity):
     """Define a WeatherAPI entity."""
 
+    _attr_attribution = ATTRIBUTION
+    _attr_native_precipitation_unit = UnitOfPrecipitationDepth.MILLIMETERS
+    _attr_native_pressure_unit = UnitOfPressure.MBAR
+    _attr_native_temperature_unit = UnitOfTemperature.CELSIUS
+    _attr_native_wind_speed_unit = UnitOfSpeed.KILOMETERS_PER_HOUR
+    _attr_precision = PRECISION_TENTHS
+
     def __init__(self, location_name: str, coordinator: WeatherAPIUpdateCoordinator):
         """Initialize."""
         super().__init__(coordinator)
@@ -68,26 +71,6 @@ class WeatherAPIEntity(CoordinatorEntity, WeatherEntity):
             ENTITY_ID_FORMAT, f"{DOMAIN}_{self._name}", hass=coordinator.hass
         )
         self._unique_id = f"{self.coordinator.location}_{self._name}"
-        self._attr_attribution = ATTRIBUTION
-
-        self._attr_precision = PRECISION_TENTHS
-
-        """
-        The weatherAPI documentation defines pressure data pieces as pressure_mb
-        (Pressure in millibars) and pressure_in (Pressure in inches). But values
-        received turn out to be in Pa and Psi.
-        """
-
-        if coordinator.is_metric:
-            self._attr_native_pressure_unit = PRESSURE_PA
-            self._attr_native_temperature_unit = TEMP_CELSIUS
-            self._attr_native_wind_speed_unit = SPEED_KILOMETERS_PER_HOUR
-            self._attr_native_visibility_unit = LENGTH_KILOMETERS
-        else:
-            self._attr_native_pressure_unit = PRESSURE_PSI
-            self._attr_native_temperature_unit = TEMP_FAHRENHEIT
-            self._attr_native_wind_speed_unit = SPEED_MILES_PER_HOUR
-            self._attr_native_visibility_unit = LENGTH_MILES
 
     @property
     def available(self) -> bool:
