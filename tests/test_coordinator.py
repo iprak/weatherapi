@@ -2,14 +2,13 @@
 
 import asyncio
 from http import HTTPStatus
-from unittest.mock import AsyncMock, Mock, PropertyMock, call, patch
+from unittest.mock import AsyncMock, Mock, call, patch
 
 from homeassistant.components.weather import (
     ATTR_CONDITION_CLEAR_NIGHT,
     ATTR_CONDITION_SUNNY,
     Forecast,
 )
-from homeassistant.util.unit_system import IMPERIAL_SYSTEM, METRIC_SYSTEM
 import pytest
 
 from custom_components.weatherapi import coordinator
@@ -113,23 +112,6 @@ async def test_is_valid_api_key_raises_cannotconnect(hass):
         return_value=session,
     ), pytest.raises(coordinator.CannotConnect):
         await coordinator.is_valid_api_key(hass, "api_key")
-
-
-@pytest.mark.parametrize(
-    "is_metric",
-    [
-        (True),
-        (False),
-    ],
-)
-async def test_constructor(is_metric, coordinator_config):
-    """Test coordinator."""
-    hass = Mock()
-    hass.config.units = METRIC_SYSTEM if is_metric else IMPERIAL_SYSTEM
-
-    coord = coordinator.WeatherAPIUpdateCoordinator(hass, coordinator_config)
-    assert coord.is_metric == is_metric
-    assert coord.location == "latitude,longitude"
 
 
 async def test_async_update_data_http_error(hass, mock_json, coordinator_config):
@@ -339,55 +321,31 @@ sample_data_for_parse_hour_forecast = {
 
 
 @pytest.mark.parametrize(
-    "is_metric, zone, data, expected",
+    "zone, data, expected",
     [
-        (True, "UTC", None, None),
-        (True, "UTC", {}, None),
+        ("UTC", None, None),
+        ("UTC", {}, None),
         (
-            True,
             "UTC",
             sample_data_for_parse_hour_forecast,
             Forecast(
                 datetime="2021-11-24T09:00:00+00:00",
-                temperature=4.9,
                 precipitation_probability=0.2,
-                wind_speed=19.0,
+                native_precipitation=0.0,
+                native_pressure=1016.0,
+                native_temperature=4.9,
+                wind_bearing="SSW",
+                native_wind_speed=30.6,
                 condition=ATTR_CONDITION_CLEAR_NIGHT,
-            ),
-        ),
-        (
-            True,
-            "US/Eastern",
-            sample_data_for_parse_hour_forecast,
-            Forecast(
-                datetime="2021-11-24T04:00:00-05:00",
-                temperature=4.9,
-                precipitation_probability=0.2,
-                wind_speed=19.0,
-                condition=ATTR_CONDITION_CLEAR_NIGHT,
-            ),
-        ),
-        (
-            False,
-            "UTC",
-            sample_data_for_parse_hour_forecast,
-            Forecast(
-                datetime="2021-11-24T09:00:00+00:00",
-                temperature=40.8,
-                precipitation_probability=0.2,
-                wind_speed=30.6,
-                condition=ATTR_CONDITION_CLEAR_NIGHT,
+                reported_condition=1000,
             ),
         ),
     ],
 )
-def test_parse_hour_forecast(hass, coordinator_config, is_metric, zone, data, expected):
+def test_parse_hour_forecast(hass, coordinator_config, zone, data, expected):
     """Test parse_hour_forecast function."""
 
     coord = coordinator.WeatherAPIUpdateCoordinator(hass, coordinator_config)
     coord.populate_time_zone(zone)
-
-    is_metric_mock = PropertyMock(return_value=is_metric)
-    coordinator.WeatherAPIUpdateCoordinator.is_metric = is_metric_mock
 
     assert coord.parse_hour_forecast(data) == expected
