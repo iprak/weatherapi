@@ -46,9 +46,3 @@ def coordinator_config_hourly_forecast():
         hourly_forecast=True,
         ignore_past_forecast=False,  # Our test data has old timestamps
     )
-
-
-@pytest.fixture
-def enable_custom_integrations(hass):
-    """Enable custom integrations defined in the test dir."""
-    hass.data.pop(loader.DATA_CUSTOM_COMPONENTS)

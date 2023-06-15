@@ -3,14 +3,13 @@ from unittest.mock import AsyncMock, patch
 
 from homeassistant import config_entries, data_entry_flow
 from homeassistant.const import CONF_API_KEY
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.weatherapi.const import (
     CONFIG_FORECAST,
     CONFIG_HOURLY_FORECAST,
     DOMAIN,
 )
-
-from tests.common import MockConfigEntry
 
 
 async def test_form(hass, enable_custom_integrations):
