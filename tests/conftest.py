@@ -3,7 +3,6 @@ from datetime import timedelta
 import json
 import os
 
-from homeassistant import loader
 import pytest
 
 from custom_components.weatherapi import coordinator
