@@ -1,4 +1,4 @@
-FROM ghcr.io/iprak/integration-image:main
+FROM ghcr.io/iprak/custom-integration-image:main
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
