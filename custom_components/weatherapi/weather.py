@@ -1,7 +1,5 @@
 """Support for WeatherAPI integration."""
 
-from __future__ import annotations
-
 from typing import Any, Mapping
 
 from homeassistant.components.weather import (
@@ -12,9 +10,10 @@ from homeassistant.components.weather import (
     ATTR_WEATHER_VISIBILITY,
     ATTR_WEATHER_WIND_BEARING,
     ATTR_WEATHER_WIND_SPEED,
-    DOMAIN as WEATHER_DOMAIN,
+    ENTITY_ID_FORMAT,
     Forecast,
     WeatherEntity,
+    WeatherEntityFeature,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
@@ -40,8 +39,6 @@ from .const import (
     DOMAIN,
 )
 
-ENTITY_ID_FORMAT = WEATHER_DOMAIN + ".{}"
-
 
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
@@ -56,6 +53,7 @@ class WeatherAPIEntity(CoordinatorEntity, WeatherEntity):
     """Define a WeatherAPI entity."""
 
     _attr_attribution = ATTRIBUTION
+    _attr_has_entity_name = True
     _attr_native_precipitation_unit = UnitOfPrecipitationDepth.MILLIMETERS
     _attr_native_pressure_unit = UnitOfPressure.MBAR
     _attr_native_temperature_unit = UnitOfTemperature.CELSIUS
@@ -66,26 +64,21 @@ class WeatherAPIEntity(CoordinatorEntity, WeatherEntity):
         """Initialize."""
         super().__init__(coordinator)
 
-        self._name = location_name
+        self._attr_name = location_name
         self.entity_id = generate_entity_id(
-            ENTITY_ID_FORMAT, f"{DOMAIN}_{self._name}", hass=coordinator.hass
+            ENTITY_ID_FORMAT, f"{DOMAIN}_{location_name}", hass=coordinator.hass
         )
-        self._unique_id = f"{self.coordinator.location}_{self._name}"
+        self._attr_unique_id = f"{self.coordinator.location}_{location_name}"
+
+    @property
+    def supported_features(self) -> int | None:
+        """Flag supported features."""
+        return WeatherEntityFeature.FORECAST_HOURLY if self.coordinator.config.hourly_forecast else WeatherEntityFeature.FORECAST_DAILY
 
     @property
     def available(self) -> bool:
         """Return if weather data is available."""
         return self.coordinator.data is not None
-
-    @property
-    def unique_id(self) -> str:
-        """Return a unique ID."""
-        return self._unique_id
-
-    @property
-    def name(self) -> str:
-        """Return the name of the entity."""
-        return self._name
 
     @property
     def native_temperature(self) -> float | None:
@@ -123,11 +116,6 @@ class WeatherAPIEntity(CoordinatorEntity, WeatherEntity):
         return self.coordinator.data.get(ATTR_WEATHER_VISIBILITY)
 
     @property
-    def forecast(self) -> list[Forecast] | None:
-        """Return the current forecast array."""
-        return self.coordinator.data.get(DATA_FORECAST)
-
-    @property
     def condition(self) -> str | None:
         """Return the current condition."""
         return self.coordinator.data.get(ATTR_WEATHER_CONDITION)
@@ -138,3 +126,15 @@ class WeatherAPIEntity(CoordinatorEntity, WeatherEntity):
         return {
             ATTR_REPORTED_CONDITION: self.coordinator.data.get(ATTR_REPORTED_CONDITION)
         }
+
+    async def async_forecast_daily(self) -> list[Forecast] | None:
+        """Return the daily forecast in native units."""
+        return self._forecast()
+
+    async def async_forecast_hourly(self) -> list[Forecast] | None:
+        """Return the hourly forecast in native units."""
+        return self._forecast()
+
+    def _forecast(self) -> list[Forecast] | None:
+        """Return the forecast in native units."""
+        return self.coordinator.data.get(DATA_FORECAST)
