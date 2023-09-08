@@ -187,12 +187,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
         """Initialize."""
 
         self._hass = hass
-        self._api_key = config.api_key
-        self._location = config.location
-        self._forecast = config.forecast
-        self._hourly_forecast = config.hourly_forecast
-        self._name = config.name
-        self._ignore_past_forecast = config.ignore_past_forecast
+        self.config = config
         self._forecast_tz = None
 
         super().__init__(
@@ -205,7 +200,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
     @property
     def location(self):
         """Return the location used for data."""
-        return self._location
+        return self.config.location
 
     async def _async_update_data(self) -> dict[str, Any]:
         return await self.get_weather()
@@ -214,8 +209,8 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
         """Get weather data."""
 
         params = {
-            "key": self._api_key,
-            "q": self._location,
+            "key": self.config.api_key,
+            "q": self.config.location,
             "days": FORECAST_DAYS,
             "aqi": "yes",
         }
@@ -231,7 +226,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
             session: ClientSession = async_get_clientsession(self.hass)
             with async_timeout.timeout(10):
                 response = await session.get(
-                    FORECAST_URL if self._forecast else CURRENT_URL,
+                    FORECAST_URL if self.config.forecast else CURRENT_URL,
                     timeout=10,
                     headers=headers,
                     params=params,
@@ -265,7 +260,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
                 result = self.parse_current(json_data.get("current"))
                 result[DATA_FORECAST] = (
                     self.parse_forecast(json_data.get("forecast"))
-                    if self._forecast
+                    if self.config.forecast
                     else None
                 )
                 return result
@@ -286,7 +281,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
             _LOGGER.warning("No forecast data received.")
             return entries
 
-        _LOGGER.debug("Forecast %s=%s", self._name, json)
+        _LOGGER.debug("Forecast %s=%s", self.config.name, json)
 
         forecastday_array = json.get("forecastday")
         if not forecastday_array:
@@ -299,7 +294,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
 
             day = forecastday.get("day")
 
-            if self._hourly_forecast:
+            if self.config.hourly_forecast:
                 hour_array = forecastday.get("hour")
                 hour_forecast_with_no_data = 0
 
@@ -316,7 +311,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
                     _LOGGER.warning(
                         "Found %d hourly forecasts for %s with no data.",
                         hour_forecast_with_no_data,
-                        self._name,
+                        self.config.name,
                     )
 
             else:
@@ -339,7 +334,9 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
 
                 entries.append(day_entry)
 
-        _LOGGER.info("Loaded %s forecast values for %s.", len(entries), self._name)
+        _LOGGER.info(
+            "Loaded %s forecast values for %s.", len(entries), self.config.name
+        )
         return entries
 
     def parse_hour_forecast(self, data: any) -> Forecast:
@@ -348,7 +345,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
         if data is None:
             return None
 
-        # Sometimes the hourly forecast just has empty content, skip if `time_epoch` element is missing.
+        # Sometimes the hourly forecast is empty, skip if `time_epoch` element is missing.
         time_epoch = data.get("time_epoch")
         if time_epoch is None:
             return None
@@ -356,8 +353,8 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
         now_hour = datetime.now().replace(minute=0, second=0, microsecond=0)
         now_hour_ts = now_hour.timestamp()
 
-        if self._ignore_past_forecast and (time_epoch < now_hour_ts):
-            _LOGGER.debug("%s: Ignoring past forecast", self._location)
+        if self.config.ignore_past_forecast and (time_epoch < now_hour_ts):
+            _LOGGER.debug("%s: Ignoring past forecast", self.config.location)
             return None
 
         condition = data.get("condition", {})
