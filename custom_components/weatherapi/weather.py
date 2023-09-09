@@ -2,6 +2,7 @@
 
 from typing import Any, Mapping
 
+from custom_components.weatherapi.const import ATTRIBUTION
 from homeassistant.components.weather import (
     ATTR_WEATHER_HUMIDITY,
     ATTR_WEATHER_OZONE,
@@ -28,8 +29,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import generate_entity_id
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-
-from custom_components.weatherapi.const import ATTRIBUTION
 
 from . import WeatherAPIUpdateCoordinator
 from .const import (

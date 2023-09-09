@@ -2,14 +2,14 @@
 
 import logging
 
+import voluptuous as vol
+
+from custom_components.weatherapi.coordinator import CannotConnect, is_valid_api_key
 from homeassistant import config_entries
 from homeassistant.const import CONF_API_KEY, CONF_LATITUDE, CONF_LONGITUDE, CONF_NAME
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
 import homeassistant.helpers.config_validation as cv
-import voluptuous as vol
-
-from custom_components.weatherapi.coordinator import CannotConnect, is_valid_api_key
 
 from .const import (  # pylint:disable=unused-import
     CONFIG_ADD_SENSORS,

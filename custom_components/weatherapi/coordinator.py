@@ -12,6 +12,21 @@ from typing import Any
 import aiohttp
 from aiohttp import ClientSession
 import async_timeout
+import requests
+
+from custom_components.weatherapi.const import (
+    ATTR_AIR_QUALITY_UK_DEFRA_INDEX,
+    ATTR_AIR_QUALITY_US_EPA_INDEX,
+    ATTR_REPORTED_CONDITION,
+    ATTR_UV,
+    ATTR_WEATHER_CONDITION,
+    CONDITION_MAP,
+    DATA_FORECAST,
+    DEFAULT_FORECAST,
+    DEFAULT_HOURLY_FORECAST,
+    DEFAULT_IGNORE_PAST_HOUR,
+    FORECAST_DAYS,
+)
 from homeassistant.components.air_quality import (
     ATTR_CO,
     ATTR_NO2,
@@ -37,22 +52,6 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 import homeassistant.util.dt as dt_util
-import pytz
-import requests
-
-from custom_components.weatherapi.const import (
-    ATTR_AIR_QUALITY_UK_DEFRA_INDEX,
-    ATTR_AIR_QUALITY_US_EPA_INDEX,
-    ATTR_REPORTED_CONDITION,
-    ATTR_UV,
-    ATTR_WEATHER_CONDITION,
-    CONDITION_MAP,
-    DATA_FORECAST,
-    DEFAULT_FORECAST,
-    DEFAULT_HOURLY_FORECAST,
-    DEFAULT_IGNORE_PAST_HOUR,
-    FORECAST_DAYS,
-)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -134,7 +133,7 @@ async def is_valid_api_key(hass: HomeAssistant, api_key: str) -> bool:
 
     try:
         session: ClientSession = async_get_clientsession(hass)
-        with async_timeout.timeout(10):
+        async with async_timeout.timeout(10):
             response = await session.get(
                 TIMEZONE_URL, timeout=10, headers=headers, params=params
             )
@@ -224,7 +223,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
 
         try:
             session: ClientSession = async_get_clientsession(self.hass)
-            with async_timeout.timeout(10):
+            async with async_timeout.timeout(10):
                 response = await session.get(
                     FORECAST_URL if self.config.forecast else CURRENT_URL,
                     timeout=10,
@@ -271,7 +270,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
 
     def populate_time_zone(self, zone: str):
         """Define timzeone for the forecasts."""
-        self._forecast_tz = pytz.timezone(zone)
+        self._forecast_tz =dt_util.get_time_zone(zone)
 
     def parse_forecast(self, json):
         """Parse the forecast JSON data."""
