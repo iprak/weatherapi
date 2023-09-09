@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from tokenize import Number
 
+from custom_components.weatherapi.const import ATTRIBUTION
 from homeassistant.components.air_quality import (
     ATTR_CO,
     ATTR_NO2,
@@ -30,8 +31,6 @@ from homeassistant.helpers.entity import EntityDescription, generate_entity_id
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-
-from custom_components.weatherapi.const import ATTRIBUTION
 
 from . import WeatherAPIUpdateCoordinator
 from .const import (

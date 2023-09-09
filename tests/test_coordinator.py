@@ -4,15 +4,15 @@ import asyncio
 from http import HTTPStatus
 from unittest.mock import AsyncMock, Mock, call, patch
 
+import pytest
+
+from custom_components.weatherapi import coordinator
+from custom_components.weatherapi.const import DATA_FORECAST
 from homeassistant.components.weather import (
     ATTR_CONDITION_CLEAR_NIGHT,
     ATTR_CONDITION_SUNNY,
     Forecast,
 )
-import pytest
-
-from custom_components.weatherapi import coordinator
-from custom_components.weatherapi.const import DATA_FORECAST
 
 
 @pytest.mark.parametrize(

@@ -1,8 +1,7 @@
 """Tests for WeatherAPI integration."""
 from unittest.mock import AsyncMock, patch
 
-from homeassistant import config_entries, data_entry_flow
-from homeassistant.const import CONF_API_KEY
+import pytest_asyncio
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.weatherapi.const import (
@@ -10,9 +9,12 @@ from custom_components.weatherapi.const import (
     CONFIG_HOURLY_FORECAST,
     DOMAIN,
 )
+from homeassistant import config_entries, data_entry_flow
+from homeassistant.const import CONF_API_KEY
 
 
-async def test_form(hass, enable_custom_integrations):
+@pytest_asyncio.fixture
+async def test_form(hass):
     """Test we get the form."""
     hass.config.latitude = 18.10
     hass.config.longitude = -77.29
@@ -24,8 +26,8 @@ async def test_form(hass, enable_custom_integrations):
     assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
     assert result["errors"] == {}
 
-
-async def test_invalid_api_key(hass, enable_custom_integrations):
+@pytest_asyncio.fixture
+async def test_invalid_api_key(hass):
     """Test that errors are shown when API key is invalid."""
 
     hass.config.latitude = 18.10
@@ -45,8 +47,8 @@ async def test_invalid_api_key(hass, enable_custom_integrations):
         assert result2["type"] == data_entry_flow.RESULT_TYPE_FORM
         assert result2["errors"] == {"base": "invalid_api_key"}
 
-
-async def test_create_entry(hass, enable_custom_integrations):
+@pytest_asyncio.fixture
+async def test_create_entry(hass):
     """Test that entry is created."""
 
     hass.config.latitude = 18.10
@@ -68,7 +70,7 @@ async def test_create_entry(hass, enable_custom_integrations):
 
         assert result2["type"] == data_entry_flow.RESULT_TYPE_CREATE_ENTRY
 
-
+@pytest_asyncio.fixture
 async def test_options_flow(hass, enable_custom_integrations):
     """Test config flow options."""
     entry = MockConfigEntry(domain=DOMAIN)
@@ -82,7 +84,7 @@ async def test_options_flow(hass, enable_custom_integrations):
     assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
     assert result["step_id"] == "init"
 
-
+@pytest_asyncio.fixture
 async def test_options_flow_create_entry(hass, enable_custom_integrations):
     """Test that entry is creted from config flow options."""
 
