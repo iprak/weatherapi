@@ -1,13 +1,15 @@
 """Tests for WeatherAPI integration."""
 from unittest.mock import AsyncMock, patch
 
-from homeassistant.const import CONF_API_KEY, CONF_LATITUDE, CONF_LONGITUDE, CONF_NAME
+import pytest_asyncio
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components import weatherapi
 from custom_components.weatherapi.const import DOMAIN
+from homeassistant.const import CONF_API_KEY, CONF_LATITUDE, CONF_LONGITUDE, CONF_NAME
 
 
+@pytest_asyncio.fixture
 async def test_async_unload_entry(hass, enable_custom_integrations):
     """Test entry unload."""
     entry = MockConfigEntry(

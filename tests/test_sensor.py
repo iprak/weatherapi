@@ -1,15 +1,15 @@
 """Test WeatherAPI sensor."""
-
 from unittest.mock import Mock
 
-from homeassistant.components.sensor import SensorEntityDescription, SensorStateClass
 import pytest
+import pytest_asyncio
 
 from custom_components.weatherapi.const import (
     ATTR_AIR_QUALITY_UK_DEFRA_INDEX,
     ATTR_AIR_QUALITY_UK_DEFRA_INDEX_BAND,
 )
 from custom_components.weatherapi.sensor import WeatherAPISensorEntity
+from homeassistant.components.sensor import SensorEntityDescription, SensorStateClass
 
 
 @pytest.mark.parametrize(
@@ -29,6 +29,7 @@ from custom_components.weatherapi.sensor import WeatherAPISensorEntity
         (11, "Very High"),
     ],
 )
+@pytest_asyncio.fixture
 def test_uk_defra_index(hass, value, expected_band):
     """Test UK Defra Index sensor."""
     description = SensorEntityDescription(

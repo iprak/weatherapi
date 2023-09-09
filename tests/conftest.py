@@ -1,4 +1,4 @@
-"""Tests for WeatherAPI integration."""
+"""Fixtures for testing."""
 from datetime import timedelta
 import json
 import os
