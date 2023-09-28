@@ -23,15 +23,16 @@ venv
 .venv
 Pipfile*
 share/*
-/Scripts/
 
 # Visual Studio Code
 .vscode/*
-!.vscode/cSpell.json
-!.vscode/extensions.json
-!.vscode/tasks.json
 .env
 
 # mypy
 /.mypy_cache/*
 /.dmypy.json
+
+# These come from the image
+setup.cfg
+pyproject.toml
+pylint/

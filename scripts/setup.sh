@@ -16,3 +16,6 @@ rm -rf /config/custom_components
 ln -sfr custom_components /config/custom_components
 
 pip3 install -r requirements_component.txt --use-deprecated=legacy-resolver
+
+# Extract .vscode, pylint, pyproject.toml, setup.cfg
+rsync -a -v --remove-source-files /tmp/container_content/ ./
