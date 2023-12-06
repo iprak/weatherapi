@@ -217,7 +217,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
         # pylint: disable=line-too-long
         headers = {
             "accept": "application/json",
-            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36",
         }
         # pylint: enable=line-too-long
 
@@ -232,6 +232,9 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
                 )
 
                 json_data = await response.json()
+                if json_data is None:
+                    _LOGGER.warning("No data received")
+                    return False
 
                 error = json_data.get("error")
                 if error:
@@ -270,7 +273,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
 
     def populate_time_zone(self, zone: str):
         """Define timzeone for the forecasts."""
-        self._forecast_tz =dt_util.get_time_zone(zone)
+        self._forecast_tz = dt_util.get_time_zone(zone)
 
     def parse_forecast(self, json):
         """Parse the forecast JSON data."""

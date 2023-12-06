@@ -72,7 +72,11 @@ class WeatherAPIEntity(CoordinatorEntity, WeatherEntity):
     @property
     def supported_features(self) -> int | None:
         """Flag supported features."""
-        return WeatherEntityFeature.FORECAST_HOURLY if self.coordinator.config.hourly_forecast else WeatherEntityFeature.FORECAST_DAILY
+        return (
+            WeatherEntityFeature.FORECAST_HOURLY
+            if self.coordinator.config.hourly_forecast
+            else WeatherEntityFeature.FORECAST_DAILY
+        )
 
     @property
     def available(self) -> bool:
