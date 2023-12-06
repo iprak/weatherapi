@@ -273,7 +273,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
 
     def populate_time_zone(self, zone: str):
         """Define timzeone for the forecasts."""
-        self._forecast_tz =dt_util.get_time_zone(zone)
+        self._forecast_tz = dt_util.get_time_zone(zone)
 
     def parse_forecast(self, json):
         """Parse the forecast JSON data."""
