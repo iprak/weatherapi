@@ -3,20 +3,6 @@
 from datetime import timedelta
 from typing import Final
 
-from custom_components.weatherapi.const import (
-    CONFIG_FORECAST,
-    CONFIG_HOURLY_FORECAST,
-    CONFIG_IGNORE_PAST_HOUR,
-    DEFAULT_FORECAST,
-    DEFAULT_HOURLY_FORECAST,
-    DEFAULT_IGNORE_PAST_HOUR,
-    DOMAIN,
-    UPDATE_INTERVAL_MINUTES,
-)
-from custom_components.weatherapi.coordinator import (
-    WeatherAPIUpdateCoordinator,
-    WeatherAPIUpdateCoordinatorConfig,
-)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_API_KEY,
@@ -26,6 +12,18 @@ from homeassistant.const import (
     Platform,
 )
 from homeassistant.core import HomeAssistant
+
+from .const import (
+    CONFIG_FORECAST,
+    CONFIG_HOURLY_FORECAST,
+    CONFIG_IGNORE_PAST_HOUR,
+    DEFAULT_FORECAST,
+    DEFAULT_HOURLY_FORECAST,
+    DEFAULT_IGNORE_PAST_HOUR,
+    DOMAIN,
+    UPDATE_INTERVAL_MINUTES,
+)
+from .coordinator import WeatherAPIUpdateCoordinator, WeatherAPIUpdateCoordinatorConfig
 
 PLATFORMS: Final = [Platform.WEATHER, Platform.SENSOR]
 

@@ -1,8 +1,8 @@
 """Support for WeatherAPI integration."""
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
-from custom_components.weatherapi.const import ATTRIBUTION
 from homeassistant.components.weather import (
     ATTR_WEATHER_HUMIDITY,
     ATTR_WEATHER_OZONE,
@@ -34,6 +34,7 @@ from . import WeatherAPIUpdateCoordinator
 from .const import (
     ATTR_REPORTED_CONDITION,
     ATTR_WEATHER_CONDITION,
+    ATTRIBUTION,
     DATA_FORECAST,
     DOMAIN,
 )
@@ -59,7 +60,9 @@ class WeatherAPIEntity(CoordinatorEntity, WeatherEntity):
     _attr_native_wind_speed_unit = UnitOfSpeed.KILOMETERS_PER_HOUR
     _attr_precision = PRECISION_TENTHS
 
-    def __init__(self, location_name: str, coordinator: WeatherAPIUpdateCoordinator):
+    def __init__(
+        self, location_name: str, coordinator: WeatherAPIUpdateCoordinator
+    ) -> None:
         """Initialize."""
         super().__init__(coordinator)
 

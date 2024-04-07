@@ -11,22 +11,8 @@ from typing import Any
 
 import aiohttp
 from aiohttp import ClientSession
-import async_timeout
 import requests
 
-from custom_components.weatherapi.const import (
-    ATTR_AIR_QUALITY_UK_DEFRA_INDEX,
-    ATTR_AIR_QUALITY_US_EPA_INDEX,
-    ATTR_REPORTED_CONDITION,
-    ATTR_UV,
-    ATTR_WEATHER_CONDITION,
-    CONDITION_MAP,
-    DATA_FORECAST,
-    DEFAULT_FORECAST,
-    DEFAULT_HOURLY_FORECAST,
-    DEFAULT_IGNORE_PAST_HOUR,
-    FORECAST_DAYS,
-)
 from homeassistant.components.air_quality import (
     ATTR_CO,
     ATTR_NO2,
@@ -52,6 +38,20 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 import homeassistant.util.dt as dt_util
+
+from .const import (
+    ATTR_AIR_QUALITY_UK_DEFRA_INDEX,
+    ATTR_AIR_QUALITY_US_EPA_INDEX,
+    ATTR_REPORTED_CONDITION,
+    ATTR_UV,
+    ATTR_WEATHER_CONDITION,
+    CONDITION_MAP,
+    DATA_FORECAST,
+    DEFAULT_FORECAST,
+    DEFAULT_HOURLY_FORECAST,
+    DEFAULT_IGNORE_PAST_HOUR,
+    FORECAST_DAYS,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -133,7 +133,7 @@ async def is_valid_api_key(hass: HomeAssistant, api_key: str) -> bool:
 
     try:
         session: ClientSession = async_get_clientsession(hass)
-        async with async_timeout.timeout(10):
+        async with asyncio.timeout(10):
             response = await session.get(
                 TIMEZONE_URL, timeout=10, headers=headers, params=params
             )
@@ -223,7 +223,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
 
         try:
             session: ClientSession = async_get_clientsession(self.hass)
-            async with async_timeout.timeout(10):
+            async with asyncio.timeout(10):
                 response = await session.get(
                     FORECAST_URL if self.config.forecast else CURRENT_URL,
                     timeout=10,
@@ -280,14 +280,14 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
         entries = []
 
         if not json:
-            _LOGGER.warning("No forecast data received.")
+            _LOGGER.warning("No forecast data received")
             return entries
 
         _LOGGER.debug("Forecast %s=%s", self.config.name, json)
 
         forecastday_array = json.get("forecastday")
         if not forecastday_array:
-            _LOGGER.warning("No day forecast found in data.")
+            _LOGGER.warning("No day forecast found in data")
             return entries
 
         for forecastday in forecastday_array:
@@ -311,7 +311,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
 
                 if hour_forecast_with_no_data > 0:
                     _LOGGER.warning(
-                        "Found %d hourly forecasts for %s with no data.",
+                        "Found %d hourly forecasts for %s with no data",
                         hour_forecast_with_no_data,
                         self.config.name,
                     )
@@ -336,9 +336,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
 
                 entries.append(day_entry)
 
-        _LOGGER.info(
-            "Loaded %s forecast values for %s.", len(entries), self.config.name
-        )
+        _LOGGER.info("Loaded %s forecast values for %s", len(entries), self.config.name)
         return entries
 
     def parse_hour_forecast(self, data: any) -> Forecast:
@@ -383,7 +381,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
     def parse_current(self, json):
         """Parse the current weather JSON data."""
         if not json:
-            _LOGGER.warning("No current data received.")
+            _LOGGER.warning("No current data received")
             return {}
 
         _LOGGER.debug(json)
