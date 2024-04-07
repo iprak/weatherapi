@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, Mock, call, patch
 import pytest
 
 from custom_components.weatherapi import coordinator
-from custom_components.weatherapi.const import DATA_FORECAST
+from custom_components.weatherapi.const import DAILY_FORECAST, HOURLY_FORECAST
 from homeassistant.components.weather import (
     ATTR_CONDITION_CLEAR_NIGHT,
     ATTR_CONDITION_SUNNY,
@@ -23,7 +23,7 @@ from homeassistant.components.weather import (
         ("a", None),
     ],
 )
-def test_to_int(value, result):
+def test_to_int(value, result) -> None:
     """Test to_int function."""
     assert coordinator.to_int(value) == result
 
@@ -39,7 +39,7 @@ def test_to_int(value, result):
         ("xzy", None),
     ],
 )
-def test_to_float(value, result):
+def test_to_float(value, result) -> None:
     """Test to_float function."""
     assert coordinator.to_float(value) == result
 
@@ -52,7 +52,7 @@ def test_to_float(value, result):
         ("2021-11-25", "2021-11-25T00:00:00+00:00"),
     ],
 )
-def test_datetime_to_iso(value, result):
+def test_datetime_to_iso(value, result) -> None:
     """Test datetime_to_iso function."""
     assert coordinator.datetime_to_iso(value) == result
 
@@ -66,7 +66,7 @@ def test_datetime_to_iso(value, result):
         (None, True, None),
     ],
 )
-def test_parse_condition_code(value, is_day, result):
+def test_parse_condition_code(value, is_day, result) -> None:
     """Test parse_condition_code function."""
     assert coordinator.parse_condition_code(value, is_day) == result
 
@@ -79,7 +79,7 @@ def test_parse_condition_code(value, is_day, result):
         (HTTPStatus.OK, {"error": {}}, True),
     ],
 )
-async def test_is_valid_api_key(hass, response_status, json, result):
+async def test_is_valid_api_key(hass, response_status, json, result) -> None:
     """Test is_valid_api_key function."""
     session = Mock()
     response = Mock()
@@ -95,13 +95,13 @@ async def test_is_valid_api_key(hass, response_status, json, result):
         assert await coordinator.is_valid_api_key(hass, "api_key") == result
 
 
-async def test_is_valid_api_key_raises_missing_key(hass):
+async def test_is_valid_api_key_raises_missing_key(hass) -> None:
     """Test missing key input for is_valid_api_key."""
     with pytest.raises(coordinator.InvalidApiKey):
         await coordinator.is_valid_api_key(hass, "")
 
 
-async def test_is_valid_api_key_raises_cannotconnect(hass):
+async def test_is_valid_api_key_raises_cannotconnect(hass) -> None:
     """Test connection issues for is_valid_api_key."""
     session = Mock()
     session.get = AsyncMock(side_effect=asyncio.TimeoutError)
@@ -114,7 +114,9 @@ async def test_is_valid_api_key_raises_cannotconnect(hass):
         await coordinator.is_valid_api_key(hass, "api_key")
 
 
-async def test_async_update_data_http_error(hass, mock_json, coordinator_config):
+async def test_async_update_data_http_error(
+    hass, mock_json, coordinator_config
+) -> None:
     """Test failed coordinator data update."""
     session = Mock()
     response = Mock()
@@ -131,7 +133,7 @@ async def test_async_update_data_http_error(hass, mock_json, coordinator_config)
         assert result is None
 
 
-async def test_get_weather_raises_cannotconnect(hass, coordinator_config):
+async def test_get_weather_raises_cannotconnect(hass, coordinator_config) -> None:
     """Test failed connection for coordinator data update."""
     session = Mock()
     session.get = AsyncMock(side_effect=asyncio.TimeoutError)
@@ -145,7 +147,7 @@ async def test_get_weather_raises_cannotconnect(hass, coordinator_config):
         await coord.get_weather()
 
 
-async def test_get_weather(hass, mock_json, coordinator_config):
+async def test_get_weather(hass, mock_json, coordinator_config) -> None:
     """Test coordinator data update."""
     session = Mock()
     response = Mock()
@@ -161,12 +163,11 @@ async def test_get_weather(hass, mock_json, coordinator_config):
         coord = coordinator.WeatherAPIUpdateCoordinator(hass, coordinator_config)
         result = await coord.get_weather()
         assert result
-        assert result[DATA_FORECAST]
+        assert result[DAILY_FORECAST]
+        assert result[HOURLY_FORECAST]
 
 
-async def test_get_weather_hourly_forecast(
-    hass, mock_json, coordinator_config_hourly_forecast
-):
+async def test_get_weather_hourly_forecast(hass, mock_json, coordinator_config) -> None:
     """Test hourly forecast in coordinator data update."""
     session = Mock()
     response = Mock()
@@ -179,19 +180,17 @@ async def test_get_weather_hourly_forecast(
         "async_get_clientsession",
         return_value=session,
     ), patch.object(coordinator, "_LOGGER"):
-        coord = coordinator.WeatherAPIUpdateCoordinator(
-            hass, coordinator_config_hourly_forecast
-        )
+        coord = coordinator.WeatherAPIUpdateCoordinator(hass, coordinator_config)
 
         result = await coord.get_weather()
         assert result
-        assert result[DATA_FORECAST]
-        assert len(result[DATA_FORECAST]) == 24
+        assert result[DAILY_FORECAST]
+        assert len(result[DAILY_FORECAST]) == 1
 
 
 async def test_get_weather_hourly_forecast_missing_data(
-    hass, mock_json, coordinator_config_hourly_forecast
-):
+    hass, mock_json, coordinator_config
+) -> None:
     """Test hourly forecast with data missing."""
     session = Mock()
     response = Mock()
@@ -210,18 +209,16 @@ async def test_get_weather_hourly_forecast_missing_data(
         "async_get_clientsession",
         return_value=session,
     ), patch.object(coordinator, "_LOGGER"):
-        coord = coordinator.WeatherAPIUpdateCoordinator(
-            hass, coordinator_config_hourly_forecast
-        )
+        coord = coordinator.WeatherAPIUpdateCoordinator(hass, coordinator_config)
         result = await coord.get_weather()
         assert result
-        assert result[DATA_FORECAST]
-        assert len(result[DATA_FORECAST]) == 22
+        assert result[DAILY_FORECAST]
+        assert len(result[DAILY_FORECAST]) == 1
 
         assert len(coordinator.get_logger().warning.mock_calls) == 1
 
 
-async def test_get_weather_no_forecast_data(hass, coordinator_config):
+async def test_get_weather_no_forecast_data(hass, coordinator_config) -> None:
     """Test missing forecast data."""
     session = Mock()
     response = Mock()
@@ -239,18 +236,19 @@ async def test_get_weather_no_forecast_data(hass, coordinator_config):
         result = await coord.get_weather()
         assert result
 
-        assert not result[DATA_FORECAST]  # No data found
+        assert not result[DAILY_FORECAST]  # No data found
+        assert not result[HOURLY_FORECAST]  # No data found
 
-        assert len(coordinator._LOGGER.warning.mock_calls) == 2
+        assert len(coordinator._LOGGER.warning.mock_calls) == 3
         assert coordinator._LOGGER.warning.mock_calls[0] == call(
-            "No current data received."
+            "No current data received"
         )
         assert coordinator._LOGGER.warning.mock_calls[1] == call(
-            "No forecast data received."
+            "No forecast data received"
         )
 
 
-async def test_get_weather_no_forecastday_data(hass, coordinator_config):
+async def test_get_weather_no_forecastday_data(hass, coordinator_config) -> None:
     """Test missing forecast data."""
     session = Mock()
     response = Mock()
@@ -268,14 +266,15 @@ async def test_get_weather_no_forecastday_data(hass, coordinator_config):
         result = await coord.get_weather()
         assert result
 
-        assert not result[DATA_FORECAST]  # No data found
+        assert not result[DAILY_FORECAST]  # No data found
+        assert not result[HOURLY_FORECAST]  # No data found
 
-        assert len(coordinator.get_logger().warning.mock_calls) == 2
+        assert len(coordinator.get_logger().warning.mock_calls) == 3
         assert coordinator.get_logger().warning.mock_calls[0] == call(
-            "No current data received."
+            "No current data received"
         )
         assert coordinator.get_logger().warning.mock_calls[1] == call(
-            "No day forecast found in data."
+            "No day forecast found in data"
         )
 
 
@@ -342,7 +341,7 @@ sample_data_for_parse_hour_forecast = {
         ),
     ],
 )
-def test_parse_hour_forecast(hass, coordinator_config, zone, data, expected):
+def test_parse_hour_forecast(hass, coordinator_config, zone, data, expected) -> None:
     """Test parse_hour_forecast function."""
 
     coord = coordinator.WeatherAPIUpdateCoordinator(hass, coordinator_config)

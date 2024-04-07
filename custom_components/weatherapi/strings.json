@@ -23,7 +23,6 @@
         "data": {
           "add_sensors": "Add weather related sensors",
           "forecast": "Generate forecast",
-          "hourly_forecast": "Generate hourly forecast instead of daily",
           "ignore_past_hour": "Do not include forecast for past hours"
         }
       }

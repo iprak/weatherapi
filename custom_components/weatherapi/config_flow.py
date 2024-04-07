@@ -13,11 +13,9 @@ import homeassistant.helpers.config_validation as cv
 from .const import (  # pylint:disable=unused-import
     CONFIG_ADD_SENSORS,
     CONFIG_FORECAST,
-    CONFIG_HOURLY_FORECAST,
     CONFIG_IGNORE_PAST_HOUR,
     DEFAULT_ADD_SENSORS,
     DEFAULT_FORECAST,
-    DEFAULT_HOURLY_FORECAST,
     DEFAULT_IGNORE_PAST_HOUR,
     DOMAIN,
 )
@@ -64,13 +62,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     default=self.config_entry.options.get(
                         CONFIG_FORECAST,
                         DEFAULT_FORECAST,
-                    ),
-                ): bool,
-                vol.Required(
-                    CONFIG_HOURLY_FORECAST,
-                    default=self.config_entry.options.get(
-                        CONFIG_HOURLY_FORECAST,
-                        DEFAULT_HOURLY_FORECAST,
                     ),
                 ): bool,
                 vol.Required(

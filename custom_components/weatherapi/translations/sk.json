@@ -22,7 +22,6 @@
         "data": {
           "add_sensors": "Pridajte senzory súvisiace s počasím",
           "forecast": "Generovať predpoveď",
-          "hourly_forecast": "Generujte hodinovú predpoveď namiesto dennej",
           "ignore_past_hour": "Nezahŕňajte predpoveď na minulé hodiny"
         }
       }

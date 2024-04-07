@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from tokenize import Number
-
 from homeassistant.components.air_quality import (
     ATTR_CO,
     ATTR_NO2,
@@ -177,7 +175,7 @@ class WeatherAPISensorEntity(CoordinatorEntity, SensorEntity):
         return value
 
     @staticmethod
-    def convert_uk_defra_index_to_band(value: Number) -> str | None:
+    def convert_uk_defra_index_to_band(value: int) -> str | None:
         """Convert UK DEFRA INDEX to band."""
         if value is None:
             return None

@@ -46,11 +46,11 @@ from .const import (
     ATTR_UV,
     ATTR_WEATHER_CONDITION,
     CONDITION_MAP,
-    DATA_FORECAST,
+    DAILY_FORECAST,
     DEFAULT_FORECAST,
-    DEFAULT_HOURLY_FORECAST,
     DEFAULT_IGNORE_PAST_HOUR,
     FORECAST_DAYS,
+    HOURLY_FORECAST,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -173,7 +173,6 @@ class WeatherAPIUpdateCoordinatorConfig:
     name: str
     update_interval: timedelta
     forecast: bool = DEFAULT_FORECAST
-    hourly_forecast: bool = DEFAULT_HOURLY_FORECAST
     ignore_past_forecast: bool = DEFAULT_IGNORE_PAST_HOUR
 
 
@@ -260,8 +259,13 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
                 )
 
                 result = self.parse_current(json_data.get("current"))
-                result[DATA_FORECAST] = (
-                    self.parse_forecast(json_data.get("forecast"))
+                result[DAILY_FORECAST] = (
+                    self.parse_forecast(json_data.get("forecast"), False)
+                    if self.config.forecast
+                    else None
+                )
+                result[HOURLY_FORECAST] = (
+                    self.parse_forecast(json_data.get("forecast"), True)
                     if self.config.forecast
                     else None
                 )
@@ -275,7 +279,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
         """Define timzeone for the forecasts."""
         self._forecast_tz = dt_util.get_time_zone(zone)
 
-    def parse_forecast(self, json):
+    def parse_forecast(self, json, hourly_forecast: bool):
         """Parse the forecast JSON data."""
         entries = []
 
@@ -296,7 +300,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
 
             day = forecastday.get("day")
 
-            if self.config.hourly_forecast:
+            if hourly_forecast:
                 hour_array = forecastday.get("hour")
                 hour_forecast_with_no_data = 0
 
