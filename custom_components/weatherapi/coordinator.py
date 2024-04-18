@@ -279,7 +279,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
         """Define timzeone for the forecasts."""
         self._forecast_tz = dt_util.get_time_zone(zone)
 
-    def parse_forecast(self, json, hourly_forecast: bool):
+    def parse_forecast(self, json, hourly_forecast: bool) -> list[Forecast]:
         """Parse the forecast JSON data."""
         entries = []
 
@@ -307,11 +307,15 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
                 for hour_json in hour_array:
                     # Skip hourly forecast if it is empty .. `time` is missing
 
-                    hour_entry = self.parse_hour_forecast(hour_json)
-                    if hour_entry is None:
+                    hour_entry_tuple = self.parse_hour_forecast(hour_json)
+                    if hour_entry_tuple is None:
                         hour_forecast_with_no_data += 1
                     else:
-                        entries.append(hour_entry)
+                        hour_entry = hour_entry_tuple[1]
+
+                        # Don't count past forcasts (if they are being ignored) in hour_forecast_with_no_data
+                        if hour_entry:
+                            entries.append(hour_entry)
 
                 if hour_forecast_with_no_data > 0:
                     _LOGGER.warning(
@@ -343,7 +347,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
         _LOGGER.info("Loaded %s forecast values for %s", len(entries), self.config.name)
         return entries
 
-    def parse_hour_forecast(self, data: any) -> Forecast:
+    def parse_hour_forecast(self, data: any) -> tuple[bool, Forecast]:
         """Parse hour forecast data."""
 
         if data is None:
@@ -359,7 +363,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
 
         if self.config.ignore_past_forecast and (time_epoch < now_hour_ts):
             _LOGGER.debug("%s: Ignoring past forecast", self.config.location)
-            return None
+            return [False, None]
 
         condition = data.get("condition", {})
         hour_forecast_time = datetime.fromtimestamp(
@@ -380,7 +384,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
             native_wind_speed=to_float(data.get("wind_kph")),
         )
         value[ATTR_REPORTED_CONDITION] = condition_code
-        return value
+        return [True, value]
 
     def parse_current(self, json):
         """Parse the current weather JSON data."""
