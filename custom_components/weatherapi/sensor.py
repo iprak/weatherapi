@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-from tokenize import Number
-
-from custom_components.weatherapi.const import ATTRIBUTION
 from homeassistant.components.air_quality import (
     ATTR_CO,
     ATTR_NO2,
@@ -38,6 +35,7 @@ from .const import (
     ATTR_AIR_QUALITY_UK_DEFRA_INDEX_BAND,
     ATTR_AIR_QUALITY_US_EPA_INDEX,
     ATTR_UV,
+    ATTRIBUTION,
     CONFIG_ADD_SENSORS,
     DEFAULT_ADD_SENSORS,
     DOMAIN as WEATHERAPI_DOMAIN,
@@ -140,7 +138,7 @@ class WeatherAPISensorEntity(CoordinatorEntity, SensorEntity):
         location_name: str,
         coordinator: WeatherAPIUpdateCoordinator,
         description: EntityDescription,
-    ):
+    ) -> None:
         """Initialize."""
         super().__init__(coordinator)
 
@@ -177,7 +175,7 @@ class WeatherAPISensorEntity(CoordinatorEntity, SensorEntity):
         return value
 
     @staticmethod
-    def convert_uk_defra_index_to_band(value: Number) -> str | None:
+    def convert_uk_defra_index_to_band(value: int) -> str | None:
         """Convert UK DEFRA INDEX to band."""
         if value is None:
             return None

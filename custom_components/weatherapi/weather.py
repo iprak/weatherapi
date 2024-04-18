@@ -1,8 +1,8 @@
 """Support for WeatherAPI integration."""
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
-from custom_components.weatherapi.const import ATTRIBUTION
 from homeassistant.components.weather import (
     ATTR_WEATHER_HUMIDITY,
     ATTR_WEATHER_OZONE,
@@ -34,8 +34,10 @@ from . import WeatherAPIUpdateCoordinator
 from .const import (
     ATTR_REPORTED_CONDITION,
     ATTR_WEATHER_CONDITION,
-    DATA_FORECAST,
+    ATTRIBUTION,
+    DAILY_FORECAST,
     DOMAIN,
+    HOURLY_FORECAST,
 )
 
 
@@ -58,8 +60,13 @@ class WeatherAPIEntity(CoordinatorEntity, WeatherEntity):
     _attr_native_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_native_wind_speed_unit = UnitOfSpeed.KILOMETERS_PER_HOUR
     _attr_precision = PRECISION_TENTHS
+    _attr_supported_features = (
+        WeatherEntityFeature.FORECAST_HOURLY | WeatherEntityFeature.FORECAST_DAILY
+    )
 
-    def __init__(self, location_name: str, coordinator: WeatherAPIUpdateCoordinator):
+    def __init__(
+        self, location_name: str, coordinator: WeatherAPIUpdateCoordinator
+    ) -> None:
         """Initialize."""
         super().__init__(coordinator)
 
@@ -68,15 +75,6 @@ class WeatherAPIEntity(CoordinatorEntity, WeatherEntity):
             ENTITY_ID_FORMAT, f"{DOMAIN}_{location_name}", hass=coordinator.hass
         )
         self._attr_unique_id = f"{self.coordinator.location}_{location_name}"
-
-    @property
-    def supported_features(self) -> int | None:
-        """Flag supported features."""
-        return (
-            WeatherEntityFeature.FORECAST_HOURLY
-            if self.coordinator.config.hourly_forecast
-            else WeatherEntityFeature.FORECAST_DAILY
-        )
 
     @property
     def available(self) -> bool:
@@ -132,12 +130,8 @@ class WeatherAPIEntity(CoordinatorEntity, WeatherEntity):
 
     async def async_forecast_daily(self) -> list[Forecast] | None:
         """Return the daily forecast in native units."""
-        return self._forecast()
+        return self.coordinator.data.get(DAILY_FORECAST)
 
     async def async_forecast_hourly(self) -> list[Forecast] | None:
         """Return the hourly forecast in native units."""
-        return self._forecast()
-
-    def _forecast(self) -> list[Forecast] | None:
-        """Return the forecast in native units."""
-        return self.coordinator.data.get(DATA_FORECAST)
+        return self.coordinator.data.get(HOURLY_FORECAST)

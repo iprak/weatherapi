@@ -1,4 +1,5 @@
 """Fixtures for testing."""
+
 from datetime import timedelta
 import json
 import os
@@ -30,18 +31,5 @@ def coordinator_config():
         location="latitude,longitude",
         name="Place",
         update_interval=timedelta(minutes=UPDATE_INTERVAL_MINUTES),
-        ignore_past_forecast=False,  # Our test data has old timestamps
-    )
-
-
-@pytest.fixture
-def coordinator_config_hourly_forecast():
-    """Return a mock coordinator configuration."""
-    yield coordinator.WeatherAPIUpdateCoordinatorConfig(
-        api_key="api_key",
-        location="latitude,longitude",
-        name="Place",
-        update_interval=timedelta(minutes=UPDATE_INTERVAL_MINUTES),
-        hourly_forecast=True,
         ignore_past_forecast=False,  # Our test data has old timestamps
     )

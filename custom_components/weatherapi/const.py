@@ -31,11 +31,11 @@ ATTR_AIR_QUALITY_UK_DEFRA_INDEX: Final = "gb-defra-index"
 ATTR_AIR_QUALITY_UK_DEFRA_INDEX_BAND: Final = "band"
 ATTR_REPORTED_CONDITION: Final = "reported_condition"
 
-DATA_FORECAST: Final = "forecast"
+DAILY_FORECAST: Final = "daily_forecast"
+HOURLY_FORECAST: Final = "hourly_forecast"
 
 CONFIG_ADD_SENSORS: Final = "add_sensors"
 CONFIG_FORECAST: Final = "forecast"
-CONFIG_HOURLY_FORECAST: Final = "hourly_forecast"
 CONFIG_IGNORE_PAST_HOUR: Final = "ignore_past_hour"
 
 DEFAULT_ADD_SENSORS: Final = True

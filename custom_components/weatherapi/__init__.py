@@ -3,20 +3,6 @@
 from datetime import timedelta
 from typing import Final
 
-from custom_components.weatherapi.const import (
-    CONFIG_FORECAST,
-    CONFIG_HOURLY_FORECAST,
-    CONFIG_IGNORE_PAST_HOUR,
-    DEFAULT_FORECAST,
-    DEFAULT_HOURLY_FORECAST,
-    DEFAULT_IGNORE_PAST_HOUR,
-    DOMAIN,
-    UPDATE_INTERVAL_MINUTES,
-)
-from custom_components.weatherapi.coordinator import (
-    WeatherAPIUpdateCoordinator,
-    WeatherAPIUpdateCoordinatorConfig,
-)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_API_KEY,
@@ -26,6 +12,16 @@ from homeassistant.const import (
     Platform,
 )
 from homeassistant.core import HomeAssistant
+
+from .const import (
+    CONFIG_FORECAST,
+    CONFIG_IGNORE_PAST_HOUR,
+    DEFAULT_FORECAST,
+    DEFAULT_IGNORE_PAST_HOUR,
+    DOMAIN,
+    UPDATE_INTERVAL_MINUTES,
+)
+from .coordinator import WeatherAPIUpdateCoordinator, WeatherAPIUpdateCoordinatorConfig
 
 PLATFORMS: Final = [Platform.WEATHER, Platform.SENSOR]
 
@@ -44,9 +40,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         name=entry.data[CONF_NAME],
         update_interval=timedelta(minutes=UPDATE_INTERVAL_MINUTES),
         forecast=entry.options.get(CONFIG_FORECAST, DEFAULT_FORECAST),
-        hourly_forecast=entry.options.get(
-            CONFIG_HOURLY_FORECAST, DEFAULT_HOURLY_FORECAST
-        ),
         ignore_past_forecast=entry.options.get(
             CONFIG_IGNORE_PAST_HOUR, DEFAULT_IGNORE_PAST_HOUR
         ),

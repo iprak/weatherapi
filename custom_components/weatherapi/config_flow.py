@@ -4,7 +4,6 @@ import logging
 
 import voluptuous as vol
 
-from custom_components.weatherapi.coordinator import CannotConnect, is_valid_api_key
 from homeassistant import config_entries
 from homeassistant.const import CONF_API_KEY, CONF_LATITUDE, CONF_LONGITUDE, CONF_NAME
 from homeassistant.core import HomeAssistant, callback
@@ -14,14 +13,13 @@ import homeassistant.helpers.config_validation as cv
 from .const import (  # pylint:disable=unused-import
     CONFIG_ADD_SENSORS,
     CONFIG_FORECAST,
-    CONFIG_HOURLY_FORECAST,
     CONFIG_IGNORE_PAST_HOUR,
     DEFAULT_ADD_SENSORS,
     DEFAULT_FORECAST,
-    DEFAULT_HOURLY_FORECAST,
     DEFAULT_IGNORE_PAST_HOUR,
     DOMAIN,
 )
+from .coordinator import CannotConnect, is_valid_api_key
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -41,7 +39,7 @@ def get_data_schema(hass: HomeAssistant) -> vol.Schema:
 class OptionsFlowHandler(config_entries.OptionsFlow):
     """Handle options flow."""
 
-    def __init__(self, config_entry: config_entries.ConfigEntry):
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         """Initialize options flow."""
         self.config_entry = config_entry
 
@@ -64,13 +62,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     default=self.config_entry.options.get(
                         CONFIG_FORECAST,
                         DEFAULT_FORECAST,
-                    ),
-                ): bool,
-                vol.Required(
-                    CONFIG_HOURLY_FORECAST,
-                    default=self.config_entry.options.get(
-                        CONFIG_HOURLY_FORECAST,
-                        DEFAULT_HOURLY_FORECAST,
                     ),
                 ): bool,
                 vol.Required(

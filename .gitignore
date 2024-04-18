@@ -33,6 +33,5 @@ share/*
 /.dmypy.json
 
 # These come from the image
-setup.cfg
 pyproject.toml
 pylint/
