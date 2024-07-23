@@ -271,8 +271,11 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
                 )
                 return result
 
-        except (asyncio.TimeoutError, aiohttp.ClientError) as exception:
-            _LOGGER.error("Timeout calling WeatherAPI end point: %s", exception)
+        except asyncio.TimeoutError as exception:
+            _LOGGER.error("Timeout invoking WeatherAPI end point: %s", exception)
+            raise CannotConnect from exception
+        except aiohttp.ClientError as exception:
+            _LOGGER.error("Error invoking WeatherAPI end point: %s", exception)
             raise CannotConnect from exception
 
     def populate_time_zone(self, zone: str):
