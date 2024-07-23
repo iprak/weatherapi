@@ -398,7 +398,12 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
         _LOGGER.debug(json)
 
         condition = json.get("condition", {})
+
         air_quality = json.get("air_quality", {})
+        if not air_quality:
+            _LOGGER.debug("No air_quality found in data")
+            air_quality = {}
+
         is_day = to_int(json.get("is_day", "1")) == 1
         condition_code = condition.get("code")
 
