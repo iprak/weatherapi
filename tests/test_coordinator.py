@@ -327,17 +327,20 @@ sample_data_for_parse_hour_forecast = {
         (
             "UTC",
             sample_data_for_parse_hour_forecast,
-            Forecast(
-                datetime="2021-11-24T09:00:00+00:00",
-                precipitation_probability=0.2,
-                native_precipitation=0.0,
-                native_pressure=1016.0,
-                native_temperature=4.9,
-                wind_bearing="SSW",
-                native_wind_speed=30.6,
-                condition=ATTR_CONDITION_CLEAR_NIGHT,
-                reported_condition=1000,
-            ),
+            [
+                True,
+                Forecast(
+                    datetime="2021-11-24T09:00:00+00:00",
+                    precipitation_probability=0.2,
+                    native_precipitation=0.0,
+                    native_pressure=1016.0,
+                    native_temperature=4.9,
+                    wind_bearing="SSW",
+                    native_wind_speed=30.6,
+                    condition=ATTR_CONDITION_CLEAR_NIGHT,
+                    reported_condition=1000,
+                ),
+            ],
         ),
     ],
 )

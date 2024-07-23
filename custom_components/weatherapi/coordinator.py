@@ -230,7 +230,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
                     params=params,
                 )
 
-                json_data = await response.json()
+                json_data = await response.json(content_type=None)
                 if json_data is None:
                     _LOGGER.warning("No data received")
                     return False
@@ -271,8 +271,11 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
                 )
                 return result
 
-        except (asyncio.TimeoutError, aiohttp.ClientError) as exception:
-            _LOGGER.error("Timeout calling WeatherAPI end point: %s", exception)
+        except asyncio.TimeoutError as exception:
+            _LOGGER.error("Timeout invoking WeatherAPI end point: %s", exception)
+            raise CannotConnect from exception
+        except aiohttp.ClientError as exception:
+            _LOGGER.error("Error invoking WeatherAPI end point: %s", exception)
             raise CannotConnect from exception
 
     def populate_time_zone(self, zone: str):
@@ -395,7 +398,12 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
         _LOGGER.debug(json)
 
         condition = json.get("condition", {})
+
         air_quality = json.get("air_quality", {})
+        if not air_quality:
+            _LOGGER.debug("No air_quality found in data")
+            air_quality = {}
+
         is_day = to_int(json.get("is_day", "1")) == 1
         condition_code = condition.get("code")
 
