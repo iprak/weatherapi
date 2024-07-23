@@ -230,7 +230,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
                     params=params,
                 )
 
-                json_data = await response.json()
+                json_data = await response.json(content_type=None)
                 if json_data is None:
                     _LOGGER.warning("No data received")
                     return False
