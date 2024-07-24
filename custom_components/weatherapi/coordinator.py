@@ -230,6 +230,16 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
                     params=params,
                 )
 
+                # Deciode only if 200 status. This should avoid
+                # JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+                if response.status != HTTPStatus.OK:
+                    _LOGGER.error(
+                        "WeatherAPI responded with HTTP error %s: %s",
+                        response.status,
+                        response.reason,
+                    )
+                    return False
+
                 json_data = await response.json(content_type=None)
                 if json_data is None:
                     _LOGGER.warning("No data received")
@@ -241,14 +251,6 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
                         "WeatherAPI responded with error %s: %s",
                         error.get("code"),
                         error.get("message"),
-                    )
-                    return False
-
-                if response.status != HTTPStatus.OK:
-                    _LOGGER.error(
-                        "WeatherAPI responded with HTTP error %s: %s",
-                        response.status,
-                        response.reason,
                     )
                     return False
 
