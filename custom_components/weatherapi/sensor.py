@@ -150,7 +150,7 @@ class WeatherAPISensorEntity(CoordinatorEntity, SensorEntity):
             entity_id_format, f"{WEATHERAPI_DOMAIN}_{name}", hass=coordinator.hass
         )
 
-        self._attr_unique_id = f"{self.coordinator.location}_{name}"
+        self._attr_unique_id = coordinator.generate_sensor_unique_id(description)
 
     @property
     def available(self) -> bool:

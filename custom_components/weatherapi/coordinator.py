@@ -21,6 +21,7 @@ from homeassistant.components.air_quality import (
     ATTR_PM_10,
     ATTR_SO2,
 )
+from homeassistant.components.sensor import SensorEntityDescription
 from homeassistant.components.weather import (
     ATTR_CONDITION_CLEAR_NIGHT,
     ATTR_CONDITION_SUNNY,
@@ -434,6 +435,11 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
                 air_quality.get(ATTR_AIR_QUALITY_US_EPA_INDEX)
             ),
         }
+
+    def generate_sensor_unique_id(self, description: SensorEntityDescription) -> str:
+        """Generate unique id for a sensor."""
+        name = f"{self.config.name} {description.name}"
+        return f"{self.location}_{name}"
 
 
 class InvalidApiKey(HomeAssistantError):
