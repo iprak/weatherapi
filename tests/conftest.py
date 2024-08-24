@@ -20,13 +20,13 @@ def load_json(filename):
 @pytest.fixture
 def mock_json():
     """Return sample JSON data with 24 hourly forecast and 1 day forecast."""
-    yield json.loads(load_json("response.json"))
+    return json.loads(load_json("response.json"))
 
 
 @pytest.fixture
 def coordinator_config():
     """Return a mock coordinator configuration."""
-    yield coordinator.WeatherAPIUpdateCoordinatorConfig(
+    return coordinator.WeatherAPIUpdateCoordinatorConfig(
         api_key="api_key",
         location="latitude,longitude",
         name="Place",
