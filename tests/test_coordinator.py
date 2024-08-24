@@ -14,6 +14,7 @@ from homeassistant.components.weather import (
     Forecast,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.update_coordinator import UpdateFailed
 
 
 @pytest.mark.parametrize(
@@ -147,9 +148,10 @@ async def test_get_weather_raises_cannotconnect(
         coordinator,
         "async_get_clientsession",
         return_value=session,
-    ), pytest.raises(coordinator.CannotConnect), patch.object(coordinator, "_LOGGER"):
+    ), patch.object(coordinator, "_LOGGER"):
         coord = coordinator.WeatherAPIUpdateCoordinator(hass, coordinator_config)
-        await coord.get_weather()
+        with pytest.raises(UpdateFailed):
+            await coord.get_weather()
 
 
 async def test_get_weather(hass: HomeAssistant, mock_json, coordinator_config) -> None:
