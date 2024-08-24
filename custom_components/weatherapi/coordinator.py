@@ -214,12 +214,10 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
             "aqi": "yes",
         }
 
-        # pylint: disable=line-too-long
         headers = {
             "accept": "application/json",
             "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36",
         }
-        # pylint: enable=line-too-long
 
         try:
             session: ClientSession = async_get_clientsession(self.hass)
