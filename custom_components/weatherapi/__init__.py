@@ -28,7 +28,7 @@ from .const import (
 from .coordinator import WeatherAPIUpdateCoordinator, WeatherAPIUpdateCoordinatorConfig
 from .sensor import SENSOR_DESCRIPTIONS
 
-PLATFORMS: Final = [Platform.WEATHER, Platform.SENSOR]
+PLATFORMS: Final = [Platform.SENSOR, Platform.WEATHER]
 _LOGGER = logging.getLogger(__name__)
 
 
