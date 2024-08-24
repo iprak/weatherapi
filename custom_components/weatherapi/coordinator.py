@@ -37,7 +37,7 @@ from homeassistant.components.weather import (
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 import homeassistant.util.dt as dt_util
 
 from .const import (
@@ -232,26 +232,21 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
                 # Deciode only if 200 status. This should avoid
                 # JSONDecodeError: Expecting value: line 1 column 1 (char 0)
                 if response.status != HTTPStatus.OK:
-                    _LOGGER.error(
-                        "WeatherAPI responded with HTTP error %s: %s",
-                        response.status,
-                        response.reason,
+                    raise UpdateFailed(
+                        f"WeatherAPI responded with status={response.status}, reason={response.reason}"
                     )
-                    return False
 
                 json_data = await response.json(content_type=None)
                 if json_data is None:
-                    _LOGGER.warning("No data received")
-                    return False
+                    raise UpdateFailed(
+                        f"WeatherAPI responded with HTTP error {response.status} but no data was provided."
+                    )
 
                 error = json_data.get("error")
                 if error:
-                    _LOGGER.error(
-                        "WeatherAPI responded with error %s: %s",
-                        error.get("code"),
-                        error.get("message"),
+                    raise UpdateFailed(
+                        f"WeatherAPI responded with error={error.get("code")}, message={error.get("message")}"
                     )
-                    return False
 
                 # Using timeZome from location falling back to local timezone
                 location = json_data.get("location", {})
@@ -273,11 +268,13 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
                 return result
 
         except asyncio.TimeoutError as exception:
-            _LOGGER.error("Timeout invoking WeatherAPI end point: %s", exception)
-            raise CannotConnect from exception
+            raise UpdateFailed(
+                f"Timeout invoking WeatherAPI end point: {exception}"
+            ) from exception
         except aiohttp.ClientError as exception:
-            _LOGGER.error("Error invoking WeatherAPI end point: %s", exception)
-            raise CannotConnect from exception
+            raise UpdateFailed(
+                f"Error invoking WeatherAPI end point: {exception}"
+            ) from exception
 
     def populate_time_zone(self, zone: str):
         """Define timzeone for the forecasts."""
