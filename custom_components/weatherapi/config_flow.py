@@ -10,7 +10,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
 import homeassistant.helpers.config_validation as cv
 
-from .const import (  # pylint:disable=unused-import
+from .const import (
     CONFIG_ADD_SENSORS,
     CONFIG_FORECAST,
     CONFIG_IGNORE_PAST_HOUR,
