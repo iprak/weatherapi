@@ -13,10 +13,12 @@ from homeassistant.components.weather import (
     ATTR_CONDITION_SUNNY,
     Forecast,
 )
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.update_coordinator import UpdateFailed
 
 
 @pytest.mark.parametrize(
-    "value, result",
+    ("value", "result"),
     [
         ("1", 1),
         (None, None),
@@ -29,7 +31,7 @@ def test_to_int(value, result) -> None:
 
 
 @pytest.mark.parametrize(
-    "value, result",
+    ("value", "result"),
     [
         ("1", 1),
         (None, None),
@@ -45,7 +47,7 @@ def test_to_float(value, result) -> None:
 
 
 @pytest.mark.parametrize(
-    "value, result",
+    ("value", "result"),
     [
         (None, None),
         # Unit test are not in local timezone
@@ -58,7 +60,7 @@ def test_datetime_to_iso(value, result) -> None:
 
 
 @pytest.mark.parametrize(
-    "value,is_day,result",
+    ("value", "is_day", "result"),
     [
         ("1000", True, ATTR_CONDITION_SUNNY),
         ("1000", False, ATTR_CONDITION_CLEAR_NIGHT),
@@ -72,14 +74,16 @@ def test_parse_condition_code(value, is_day, result) -> None:
 
 
 @pytest.mark.parametrize(
-    "response_status, json,result",
+    ("response_status", "json", "result"),
     [
         (HTTPStatus.OK, {"error": {"code": "12345"}}, False),
         (HTTPStatus.OK, {}, True),
         (HTTPStatus.OK, {"error": {}}, True),
     ],
 )
-async def test_is_valid_api_key(hass, response_status, json, result) -> None:
+async def test_is_valid_api_key(
+    hass: HomeAssistant, response_status, json, result
+) -> None:
     """Test is_valid_api_key function."""
     session = Mock()
     response = Mock()
@@ -95,13 +99,13 @@ async def test_is_valid_api_key(hass, response_status, json, result) -> None:
         assert await coordinator.is_valid_api_key(hass, "api_key") == result
 
 
-async def test_is_valid_api_key_raises_missing_key(hass) -> None:
+async def test_is_valid_api_key_raises_missing_key(hass: HomeAssistant) -> None:
     """Test missing key input for is_valid_api_key."""
     with pytest.raises(coordinator.InvalidApiKey):
         await coordinator.is_valid_api_key(hass, "")
 
 
-async def test_is_valid_api_key_raises_cannotconnect(hass) -> None:
+async def test_is_valid_api_key_raises_cannotconnect(hass: HomeAssistant) -> None:
     """Test connection issues for is_valid_api_key."""
     session = Mock()
     session.get = AsyncMock(side_effect=asyncio.TimeoutError)
@@ -115,7 +119,7 @@ async def test_is_valid_api_key_raises_cannotconnect(hass) -> None:
 
 
 async def test_async_update_data_http_error(
-    hass, mock_json, coordinator_config
+    hass: HomeAssistant, mock_json, coordinator_config
 ) -> None:
     """Test failed coordinator data update."""
     session = Mock()
@@ -133,7 +137,9 @@ async def test_async_update_data_http_error(
         assert result is None
 
 
-async def test_get_weather_raises_cannotconnect(hass, coordinator_config) -> None:
+async def test_get_weather_raises_cannotconnect(
+    hass: HomeAssistant, coordinator_config
+) -> None:
     """Test failed connection for coordinator data update."""
     session = Mock()
     session.get = AsyncMock(side_effect=asyncio.TimeoutError)
@@ -142,12 +148,13 @@ async def test_get_weather_raises_cannotconnect(hass, coordinator_config) -> Non
         coordinator,
         "async_get_clientsession",
         return_value=session,
-    ), pytest.raises(coordinator.CannotConnect), patch.object(coordinator, "_LOGGER"):
+    ), patch.object(coordinator, "_LOGGER"):
         coord = coordinator.WeatherAPIUpdateCoordinator(hass, coordinator_config)
-        await coord.get_weather()
+        with pytest.raises(UpdateFailed):
+            await coord.get_weather()
 
 
-async def test_get_weather(hass, mock_json, coordinator_config) -> None:
+async def test_get_weather(hass: HomeAssistant, mock_json, coordinator_config) -> None:
     """Test coordinator data update."""
     session = Mock()
     response = Mock()
@@ -167,7 +174,9 @@ async def test_get_weather(hass, mock_json, coordinator_config) -> None:
         assert result[HOURLY_FORECAST]
 
 
-async def test_get_weather_hourly_forecast(hass, mock_json, coordinator_config) -> None:
+async def test_get_weather_hourly_forecast(
+    hass: HomeAssistant, mock_json, coordinator_config
+) -> None:
     """Test hourly forecast in coordinator data update."""
     session = Mock()
     response = Mock()
@@ -189,7 +198,7 @@ async def test_get_weather_hourly_forecast(hass, mock_json, coordinator_config) 
 
 
 async def test_get_weather_hourly_forecast_missing_data(
-    hass, mock_json, coordinator_config
+    hass: HomeAssistant, mock_json, coordinator_config
 ) -> None:
     """Test hourly forecast with data missing."""
     session = Mock()
@@ -218,7 +227,9 @@ async def test_get_weather_hourly_forecast_missing_data(
         assert len(coordinator.get_logger().warning.mock_calls) == 1
 
 
-async def test_get_weather_no_forecast_data(hass, coordinator_config) -> None:
+async def test_get_weather_no_forecast_data(
+    hass: HomeAssistant, coordinator_config
+) -> None:
     """Test missing forecast data."""
     session = Mock()
     response = Mock()
@@ -248,7 +259,9 @@ async def test_get_weather_no_forecast_data(hass, coordinator_config) -> None:
         )
 
 
-async def test_get_weather_no_forecastday_data(hass, coordinator_config) -> None:
+async def test_get_weather_no_forecastday_data(
+    hass: HomeAssistant, coordinator_config
+) -> None:
     """Test missing forecast data."""
     session = Mock()
     response = Mock()
@@ -344,7 +357,9 @@ sample_data_for_parse_hour_forecast = {
         ),
     ],
 )
-def test_parse_hour_forecast(hass, coordinator_config, zone, data, expected) -> None:
+def test_parse_hour_forecast(
+    hass: HomeAssistant, coordinator_config, zone, data, expected
+) -> None:
     """Test parse_hour_forecast function."""
 
     coord = coordinator.WeatherAPIUpdateCoordinator(hass, coordinator_config)
