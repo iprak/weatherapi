@@ -16,7 +16,6 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorStateClass,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
     CONCENTRATION_PARTS_PER_MILLION,
@@ -29,7 +28,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from . import WeatherAPIUpdateCoordinator
 from .const import (
     ATTR_AIR_QUALITY_UK_DEFRA_INDEX,
     ATTR_AIR_QUALITY_UK_DEFRA_INDEX_BAND,
@@ -40,6 +38,7 @@ from .const import (
     DEFAULT_ADD_SENSORS,
     DOMAIN as WEATHERAPI_DOMAIN,
 )
+from .coordinator import WeatherAPIConfigEntry, WeatherAPIUpdateCoordinator
 
 # https://www.weatherapi.com/docs/
 SENSOR_DESCRIPTIONS: tuple[SensorEntityDescription, ...] = (
@@ -107,7 +106,9 @@ SENSOR_DESCRIPTIONS: tuple[SensorEntityDescription, ...] = (
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant,
+    entry: WeatherAPIConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Add sensor devices."""
 
@@ -115,9 +116,7 @@ async def async_setup_entry(
         return
 
     location_name: str = entry.data[CONF_NAME]
-    coordinator: WeatherAPIUpdateCoordinator = hass.data[WEATHERAPI_DOMAIN][
-        entry.entry_id
-    ]
+    coordinator: WeatherAPIUpdateCoordinator = entry.runtime_data.coordinator
 
     entities = [
         WeatherAPISensorEntity(location_name, coordinator, description)
@@ -127,7 +126,9 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class WeatherAPISensorEntity(CoordinatorEntity[WeatherAPIUpdateCoordinator], SensorEntity):
+class WeatherAPISensorEntity(
+    CoordinatorEntity[WeatherAPIUpdateCoordinator], SensorEntity
+):
     """Define a WeatherAPI air quality sensor."""
 
     _attr_has_entity_name = True

@@ -33,6 +33,7 @@ from homeassistant.components.weather import (
     ATTR_WEATHER_WIND_SPEED,
     Forecast,
 )
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -49,6 +50,7 @@ from .const import (
     DAILY_FORECAST,
     DEFAULT_FORECAST,
     DEFAULT_IGNORE_PAST_HOUR,
+    DOMAIN,
     FORECAST_DAYS,
     HOURLY_FORECAST,
     LOGGER,
@@ -159,6 +161,16 @@ async def is_valid_api_key(hass: HomeAssistant, api_key: str) -> bool:
 
 
 @dataclass
+class WeatherAPIData:
+    """Data for the integration."""
+
+    coordinator: WeatherAPIUpdateCoordinator
+
+
+type WeatherAPIConfigEntry = ConfigEntry[WeatherAPIData]
+
+
+@dataclass
 class WeatherAPIUpdateCoordinatorConfig:
     """Class representing coordinator configuration."""
 
@@ -174,7 +186,10 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """The WeatherAPI update coordinator."""
 
     def __init__(
-        self, hass: HomeAssistant, config: WeatherAPIUpdateCoordinatorConfig
+        self,
+        hass: HomeAssistant,
+        config: WeatherAPIUpdateCoordinatorConfig,
+        config_entry: WeatherAPIConfigEntry,
     ) -> None:
         """Initialize."""
 
@@ -185,7 +200,8 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         super().__init__(
             hass,
             LOGGER,
-            name="WeatherAPIUpdateCoordinator",
+            config_entry=config_entry,
+            name=DOMAIN,
             update_interval=config.update_interval,
         )
 

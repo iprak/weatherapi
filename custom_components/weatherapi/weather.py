@@ -16,7 +16,6 @@ from homeassistant.components.weather import (
     WeatherEntity,
     WeatherEntityFeature,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_NAME,
     PRECISION_TENTHS,
@@ -30,7 +29,6 @@ from homeassistant.helpers.entity import generate_entity_id
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from . import WeatherAPIUpdateCoordinator
 from .const import (
     ATTR_REPORTED_CONDITION,
     ATTR_WEATHER_CONDITION,
@@ -39,14 +37,17 @@ from .const import (
     DOMAIN,
     HOURLY_FORECAST,
 )
+from .coordinator import WeatherAPIConfigEntry, WeatherAPIUpdateCoordinator
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant,
+    entry: WeatherAPIConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Add weather entity."""
     location_name: str = entry.data[CONF_NAME]
-    coordinator: WeatherAPIUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator: WeatherAPIUpdateCoordinator = entry.runtime_data.coordinator
     async_add_entities([WeatherAPIEntity(location_name, coordinator)])
 
 

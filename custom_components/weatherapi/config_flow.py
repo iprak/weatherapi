@@ -2,7 +2,7 @@
 
 import voluptuous as vol
 
-from homeassistant import config_entries
+from homeassistant.config_entries import ConfigFlow, OptionsFlow
 from homeassistant.const import CONF_API_KEY, CONF_LATITUDE, CONF_LONGITUDE, CONF_NAME
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
@@ -18,7 +18,7 @@ from .const import (
     DOMAIN,
     LOGGER,
 )
-from .coordinator import CannotConnect, is_valid_api_key
+from .coordinator import CannotConnect, WeatherAPIConfigEntry, is_valid_api_key
 
 
 def get_data_schema(hass: HomeAssistant) -> vol.Schema:
@@ -33,12 +33,8 @@ def get_data_schema(hass: HomeAssistant) -> vol.Schema:
     )
 
 
-class OptionsFlowHandler(config_entries.OptionsFlow):
+class OptionsFlowHandler(OptionsFlow):
     """Handle options flow."""
-
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        """Initialize options flow."""
-        self.config_entry = config_entry
 
     async def async_step_init(self, user_input=None):
         """Handle options flow."""
@@ -73,7 +69,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         return self.async_show_form(step_id="init", data_schema=data_schema)
 
 
-class WeatherAPIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class WeatherAPIConfigFlow(ConfigFlow, domain=DOMAIN):
     """Config flow for WeatherAPI."""
 
     VERSION = 1
@@ -95,7 +91,7 @@ class WeatherAPIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     errors["base"] = "invalid_api_key"
             except CannotConnect:
                 errors["base"] = "cannot_connect"
-            except Exception:  # pylint: disable=broad-except
+            except Exception:  # noqa: BLE001
                 LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
 
@@ -113,7 +109,7 @@ class WeatherAPIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     @staticmethod
     @callback
     def async_get_options_flow(
-        config_entry: config_entries.ConfigEntry,
+        config_entry: WeatherAPIConfigEntry,
     ) -> OptionsFlowHandler:
         """Get the options flow for this handler."""
-        return OptionsFlowHandler(config_entry)
+        return OptionsFlowHandler()

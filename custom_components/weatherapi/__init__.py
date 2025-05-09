@@ -25,16 +25,19 @@ from .const import (
     LOGGER,
     UPDATE_INTERVAL_MINUTES,
 )
-from .coordinator import WeatherAPIUpdateCoordinator, WeatherAPIUpdateCoordinatorConfig
+from .coordinator import (
+    WeatherAPIConfigEntry,
+    WeatherAPIData,
+    WeatherAPIUpdateCoordinator,
+    WeatherAPIUpdateCoordinatorConfig,
+)
 from .sensor import SENSOR_DESCRIPTIONS
 
 PLATFORMS: Final = [Platform.SENSOR, Platform.WEATHER]
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
+async def async_setup_entry(hass: HomeAssistant, entry: WeatherAPIConfigEntry) -> bool:
     """Set up the WeatherAPI component."""
-
-    hass.data.setdefault(DOMAIN, {})
 
     latitude = entry.data[CONF_LATITUDE]
     longitude = entry.data[CONF_LONGITUDE]
@@ -51,11 +54,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         ),
     )
 
-    coordinator = WeatherAPIUpdateCoordinator(hass, config)
+    coordinator = WeatherAPIUpdateCoordinator(hass, config, entry)
     await coordinator.async_config_entry_first_refresh()
 
     entry.async_on_unload(entry.add_update_listener(_async_update_listener))
-    hass.data[DOMAIN][entry.entry_id] = coordinator
+    entry.runtime_data = WeatherAPIData(coordinator=coordinator)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     # Remove previous sensor entries if sensors are not being added
@@ -76,10 +79,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-    if unload_ok:
-        hass.data[DOMAIN].pop(entry.entry_id)
-    return unload_ok
+    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 
 async def _async_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
