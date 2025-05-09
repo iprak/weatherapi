@@ -1,7 +1,5 @@
 """Config flow for WeatherAPI integration."""
 
-import logging
-
 import voluptuous as vol
 
 from homeassistant import config_entries
@@ -18,10 +16,9 @@ from .const import (
     DEFAULT_FORECAST,
     DEFAULT_IGNORE_PAST_HOUR,
     DOMAIN,
+    LOGGER,
 )
 from .coordinator import CannotConnect, is_valid_api_key
-
-_LOGGER = logging.getLogger(__name__)
 
 
 def get_data_schema(hass: HomeAssistant) -> vol.Schema:
@@ -99,7 +96,7 @@ class WeatherAPIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             except CannotConnect:
                 errors["base"] = "cannot_connect"
             except Exception:  # pylint: disable=broad-except
-                _LOGGER.exception("Unexpected exception")
+                LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
 
             if not errors:
