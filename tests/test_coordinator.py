@@ -2,7 +2,8 @@
 
 import asyncio
 from http import HTTPStatus
-from unittest.mock import AsyncMock, Mock, call, patch
+import logging
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
@@ -127,11 +128,7 @@ async def test_async_update_data_http_error(
     response.json = AsyncMock(return_value=mock_json)
     session.get = AsyncMock(return_value=response)
 
-    with patch.object(
-        coordinator,
-        "async_get_clientsession",
-        return_value=session,
-    ), patch.object(coordinator, "_LOGGER"):
+    with patch.object(coordinator, "async_get_clientsession", return_value=session):
         coord = coordinator.WeatherAPIUpdateCoordinator(hass, coordinator_config)
         result = await coord.async_refresh()
         assert result is None
@@ -144,11 +141,7 @@ async def test_get_weather_raises_cannotconnect(
     session = Mock()
     session.get = AsyncMock(side_effect=asyncio.TimeoutError)
 
-    with patch.object(
-        coordinator,
-        "async_get_clientsession",
-        return_value=session,
-    ), patch.object(coordinator, "_LOGGER"):
+    with patch.object(coordinator, "async_get_clientsession", return_value=session):
         coord = coordinator.WeatherAPIUpdateCoordinator(hass, coordinator_config)
         with pytest.raises(UpdateFailed):
             await coord.get_weather()
@@ -162,11 +155,7 @@ async def test_get_weather(hass: HomeAssistant, mock_json, coordinator_config) -
     response.json = AsyncMock(return_value=mock_json)
     session.get = AsyncMock(return_value=response)
 
-    with patch.object(
-        coordinator,
-        "async_get_clientsession",
-        return_value=session,
-    ), patch.object(coordinator, "_LOGGER"):
+    with patch.object(coordinator, "async_get_clientsession", return_value=session):
         coord = coordinator.WeatherAPIUpdateCoordinator(hass, coordinator_config)
         result = await coord.get_weather()
         assert result
@@ -184,11 +173,7 @@ async def test_get_weather_hourly_forecast(
     response.json = AsyncMock(return_value=mock_json)
     session.get = AsyncMock(return_value=response)
 
-    with patch.object(
-        coordinator,
-        "async_get_clientsession",
-        return_value=session,
-    ), patch.object(coordinator, "_LOGGER"):
+    with patch.object(coordinator, "async_get_clientsession", return_value=session):
         coord = coordinator.WeatherAPIUpdateCoordinator(hass, coordinator_config)
 
         result = await coord.get_weather()
@@ -198,7 +183,7 @@ async def test_get_weather_hourly_forecast(
 
 
 async def test_get_weather_hourly_forecast_missing_data(
-    hass: HomeAssistant, mock_json, coordinator_config
+    hass: HomeAssistant, mock_json, coordinator_config, caplog: pytest.LogCaptureFixture
 ) -> None:
     """Test hourly forecast with data missing."""
     session = Mock()
@@ -213,22 +198,21 @@ async def test_get_weather_hourly_forecast_missing_data(
     response.json = AsyncMock(return_value=mock_json)
     session.get = AsyncMock(return_value=response)
 
-    with patch.object(
-        coordinator,
-        "async_get_clientsession",
-        return_value=session,
-    ), patch.object(coordinator, "_LOGGER"):
+    with patch.object(coordinator, "async_get_clientsession", return_value=session):
+        caplog.clear()
+        caplog.set_level(logging.WARNING)
+
         coord = coordinator.WeatherAPIUpdateCoordinator(hass, coordinator_config)
         result = await coord.get_weather()
         assert result
         assert result[DAILY_FORECAST]
         assert len(result[DAILY_FORECAST]) == 1
 
-        assert len(coordinator.get_logger().warning.mock_calls) == 1
+        assert len(caplog.record_tuples) == 1
 
 
 async def test_get_weather_no_forecast_data(
-    hass: HomeAssistant, coordinator_config
+    hass: HomeAssistant, coordinator_config, caplog: pytest.LogCaptureFixture
 ) -> None:
     """Test missing forecast data."""
     session = Mock()
@@ -238,11 +222,10 @@ async def test_get_weather_no_forecast_data(
     response.json = AsyncMock(return_value=mock_response_json)
     session.get = AsyncMock(return_value=response)
 
-    with patch.object(
-        coordinator,
-        "async_get_clientsession",
-        return_value=session,
-    ), patch.object(coordinator, "_LOGGER"):
+    with patch.object(coordinator, "async_get_clientsession", return_value=session):
+        caplog.clear()
+        caplog.set_level(logging.WARNING)
+
         coord = coordinator.WeatherAPIUpdateCoordinator(hass, coordinator_config)
         result = await coord.get_weather()
         assert result
@@ -250,17 +233,17 @@ async def test_get_weather_no_forecast_data(
         assert not result[DAILY_FORECAST]  # No data found
         assert not result[HOURLY_FORECAST]  # No data found
 
-        assert len(coordinator._LOGGER.warning.mock_calls) == 3
-        assert coordinator._LOGGER.warning.mock_calls[0] == call(
-            "No current data received"
-        )
-        assert coordinator._LOGGER.warning.mock_calls[1] == call(
-            "No forecast data received"
-        )
+        assert len(caplog.record_tuples) == 3
+
+        assert caplog.record_tuples[0][1] == logging.WARNING
+        assert "No current data received" in caplog.record_tuples[0][2]
+
+        assert caplog.record_tuples[1][1] == logging.WARNING
+        assert "No forecast data received" in caplog.record_tuples[1][2]
 
 
 async def test_get_weather_no_forecastday_data(
-    hass: HomeAssistant, coordinator_config
+    hass: HomeAssistant, coordinator_config, caplog: pytest.LogCaptureFixture
 ) -> None:
     """Test missing forecast data."""
     session = Mock()
@@ -270,11 +253,10 @@ async def test_get_weather_no_forecastday_data(
     response.json = AsyncMock(return_value=mock_response_json)
     session.get = AsyncMock(return_value=response)
 
-    with patch.object(
-        coordinator,
-        "async_get_clientsession",
-        return_value=session,
-    ), patch.object(coordinator, "_LOGGER"):
+    with patch.object(coordinator, "async_get_clientsession", return_value=session):
+        caplog.clear()
+        caplog.set_level(logging.WARNING)
+
         coord = coordinator.WeatherAPIUpdateCoordinator(hass, coordinator_config)
         result = await coord.get_weather()
         assert result
@@ -282,13 +264,13 @@ async def test_get_weather_no_forecastday_data(
         assert not result[DAILY_FORECAST]  # No data found
         assert not result[HOURLY_FORECAST]  # No data found
 
-        assert len(coordinator.get_logger().warning.mock_calls) == 3
-        assert coordinator.get_logger().warning.mock_calls[0] == call(
-            "No current data received"
-        )
-        assert coordinator.get_logger().warning.mock_calls[1] == call(
-            "No day forecast found in data"
-        )
+        assert len(caplog.record_tuples) == 3
+
+        assert caplog.record_tuples[0][1] == logging.WARNING
+        assert "No current data received" in caplog.record_tuples[0][2]
+
+        assert caplog.record_tuples[1][1] == logging.WARNING
+        assert "No day forecast found in data" in caplog.record_tuples[1][2]
 
 
 sample_data_for_parse_hour_forecast = {
