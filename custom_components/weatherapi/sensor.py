@@ -127,7 +127,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class WeatherAPISensorEntity(CoordinatorEntity, SensorEntity):
+class WeatherAPISensorEntity(CoordinatorEntity[WeatherAPIUpdateCoordinator], SensorEntity):
     """Define a WeatherAPI air quality sensor."""
 
     _attr_has_entity_name = True

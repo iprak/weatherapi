@@ -170,7 +170,7 @@ class WeatherAPIUpdateCoordinatorConfig:
     ignore_past_forecast: bool = DEFAULT_IGNORE_PAST_HOUR
 
 
-class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
+class WeatherAPIUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """The WeatherAPI update coordinator."""
 
     def __init__(
@@ -222,7 +222,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
                     params=params,
                 )
 
-                # Deciode only if 200 status. This should avoid
+                # Decode only if 200 status. This should avoid
                 # JSONDecodeError: Expecting value: line 1 column 1 (char 0)
                 if response.status != HTTPStatus.OK:
                     raise UpdateFailed(
@@ -238,7 +238,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
                 error = json_data.get("error")
                 if error:
                     raise UpdateFailed(
-                        f"WeatherAPI responded with error={error.get("code")}, message={error.get("message")}"
+                        f"WeatherAPI responded with error={error.get('code')}, message={error.get('message')}"
                     )
 
                 # Using timeZome from location falling back to local timezone

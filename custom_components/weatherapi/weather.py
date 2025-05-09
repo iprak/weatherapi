@@ -50,7 +50,7 @@ async def async_setup_entry(
     async_add_entities([WeatherAPIEntity(location_name, coordinator)])
 
 
-class WeatherAPIEntity(CoordinatorEntity, WeatherEntity):
+class WeatherAPIEntity(CoordinatorEntity[WeatherAPIUpdateCoordinator], WeatherEntity):
     """Define a WeatherAPI entity."""
 
     _attr_attribution = ATTRIBUTION
