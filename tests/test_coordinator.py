@@ -315,7 +315,7 @@ sample_data_for_parse_hour_forecast = {
 
 
 @pytest.mark.parametrize(
-    "zone, data, expected",
+    ("zone", "data", "expected"),
     [
         ("UTC", None, None),
         ("UTC", {}, None),
