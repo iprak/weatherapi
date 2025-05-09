@@ -1,7 +1,6 @@
 """The WeatherAPI integration."""
 
 from datetime import timedelta
-import logging
 from typing import Final
 
 from homeassistant.config_entries import ConfigEntry
@@ -23,13 +22,13 @@ from .const import (
     DEFAULT_FORECAST,
     DEFAULT_IGNORE_PAST_HOUR,
     DOMAIN,
+    LOGGER,
     UPDATE_INTERVAL_MINUTES,
 )
 from .coordinator import WeatherAPIUpdateCoordinator, WeatherAPIUpdateCoordinatorConfig
 from .sensor import SENSOR_DESCRIPTIONS
 
 PLATFORMS: Final = [Platform.SENSOR, Platform.WEATHER]
-_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
@@ -69,7 +68,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
             if entity_id := ent_reg.async_get_entity_id(
                 Platform.SENSOR, DOMAIN, unique_id
             ):
-                _LOGGER.debug("Removing sensor entity %s", entity_id)
+                LOGGER.debug("Removing sensor entity %s", entity_id)
                 ent_reg.async_remove(entity_id)
 
     return True

@@ -6,7 +6,6 @@ import asyncio
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from http import HTTPStatus
-import logging
 from typing import Any
 
 import aiohttp
@@ -52,19 +51,13 @@ from .const import (
     DEFAULT_IGNORE_PAST_HOUR,
     FORECAST_DAYS,
     HOURLY_FORECAST,
+    LOGGER,
 )
-
-_LOGGER = logging.getLogger(__name__)
 
 BASE_URL = "https://api.weatherapi.com/v1"
 TIMEZONE_URL = f"{BASE_URL}/timezone.json"
 CURRENT_URL = f"{BASE_URL}/current.json"
 FORECAST_URL = f"{BASE_URL}/forecast.json"
-
-
-def get_logger():
-    """Get the current logger."""
-    return _LOGGER
 
 
 def to_float(value: str | None) -> float | None:
@@ -143,7 +136,7 @@ async def is_valid_api_key(hass: HomeAssistant, api_key: str) -> bool:
 
             error = json_data.get("error")
             if error:
-                _LOGGER.error(
+                LOGGER.error(
                     "WeatherAPI responded with error %s: %s",
                     error.get("code"),
                     error.get("message"),
@@ -151,7 +144,7 @@ async def is_valid_api_key(hass: HomeAssistant, api_key: str) -> bool:
                 return False
 
             if response.status != HTTPStatus.OK:
-                _LOGGER.error(
+                LOGGER.error(
                     "WeatherAPI responded with HTTP error %s: %s",
                     response.status,
                     response.reason,
@@ -161,7 +154,7 @@ async def is_valid_api_key(hass: HomeAssistant, api_key: str) -> bool:
             return True
 
     except (asyncio.TimeoutError, aiohttp.ClientError) as exception:
-        _LOGGER.error("Timeout calling WeatherAPI end point: %s", exception)
+        LOGGER.error("Timeout calling WeatherAPI end point: %s", exception)
         raise CannotConnect from exception
 
 
@@ -191,7 +184,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
 
         super().__init__(
             hass,
-            _LOGGER,
+            LOGGER,
             name="WeatherAPIUpdateCoordinator",
             update_interval=config.update_interval,
         )
@@ -285,14 +278,14 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
         entries = []
 
         if not json:
-            _LOGGER.warning("No forecast data received")
+            LOGGER.warning("No forecast data received")
             return entries
 
-        _LOGGER.debug("Forecast %s=%s", self.config.name, json)
+        LOGGER.debug("Forecast %s=%s", self.config.name, json)
 
         forecastday_array = json.get("forecastday")
         if not forecastday_array:
-            _LOGGER.warning("No day forecast found in data")
+            LOGGER.warning("No day forecast found in data")
             return entries
 
         for forecastday in forecastday_array:
@@ -319,7 +312,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
                             entries.append(hour_entry)
 
                 if hour_forecast_with_no_data > 0:
-                    _LOGGER.warning(
+                    LOGGER.warning(
                         "Found %d hourly forecasts for %s with no data",
                         hour_forecast_with_no_data,
                         self.config.name,
@@ -345,7 +338,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
 
                 entries.append(day_entry)
 
-        _LOGGER.info("Loaded %s forecast values for %s", len(entries), self.config.name)
+        LOGGER.info("Loaded %s forecast values for %s", len(entries), self.config.name)
         return entries
 
     def parse_hour_forecast(self, data: any) -> tuple[bool, Forecast]:
@@ -363,7 +356,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
         now_hour_ts = now_hour.timestamp()
 
         if self.config.ignore_past_forecast and (time_epoch < now_hour_ts):
-            _LOGGER.debug("%s: Ignoring past forecast", self.config.location)
+            LOGGER.debug("%s: Ignoring past forecast", self.config.location)
             return [False, None]
 
         condition = data.get("condition", {})
@@ -390,16 +383,16 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
     def parse_current(self, json):
         """Parse the current weather JSON data."""
         if not json:
-            _LOGGER.warning("No current data received")
+            LOGGER.warning("No current data received")
             return {}
 
-        _LOGGER.debug(json)
+        LOGGER.debug(json)
 
         condition = json.get("condition", {})
 
         air_quality = json.get("air_quality", {})
         if not air_quality:
-            _LOGGER.debug("No air_quality found in data")
+            LOGGER.debug("No air_quality found in data")
             air_quality = {}
 
         is_day = to_int(json.get("is_day", "1")) == 1

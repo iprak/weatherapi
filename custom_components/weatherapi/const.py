@@ -1,5 +1,6 @@
 """Constants for the Weather API component."""
 
+import logging
 from typing import Final
 
 from homeassistant.components.weather import (
@@ -108,3 +109,5 @@ CONDITION_MAP: Final[dict[str, list[int]]] = {
     # ATTR_CONDITION_WINDY
     # ATTR_CONDITION_WINDY_VARIANT
 }
+
+LOGGER = logging.getLogger(__package__)
