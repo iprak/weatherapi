@@ -153,7 +153,7 @@ async def is_valid_api_key(hass: HomeAssistant, api_key: str) -> bool:
 
             return True
 
-    except (asyncio.TimeoutError, aiohttp.ClientError) as exception:
+    except (TimeoutError, aiohttp.ClientError) as exception:
         LOGGER.error("Timeout calling WeatherAPI end point: %s", exception)
         raise CannotConnect from exception
 
@@ -260,7 +260,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 )
                 return result
 
-        except asyncio.TimeoutError as exception:
+        except TimeoutError as exception:
             raise UpdateFailed(
                 f"Timeout invoking WeatherAPI end point: {exception}"
             ) from exception
