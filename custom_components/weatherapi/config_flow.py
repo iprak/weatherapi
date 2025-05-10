@@ -144,6 +144,12 @@ async def is_valid_api_key(hass: HomeAssistant, api_key: str) -> bool:
             params=params,
         )
 
+        if response.status != HTTPStatus.OK:
+            LOGGER.error(
+                "WeatherAPI responded with HTTP error status=%s", response.status
+            )
+            return False
+
         json_data = await response.json()
 
         error = json_data.get("error")
@@ -152,14 +158,6 @@ async def is_valid_api_key(hass: HomeAssistant, api_key: str) -> bool:
                 "WeatherAPI responded with error %s: %s",
                 error.get("code"),
                 error.get("message"),
-            )
-            return False
-
-        if response.status != HTTPStatus.OK:
-            LOGGER.error(
-                "WeatherAPI responded with HTTP error %s: %s",
-                response.status,
-                response.reason,
             )
             return False
 
