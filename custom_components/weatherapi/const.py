@@ -110,4 +110,9 @@ CONDITION_MAP: Final[dict[str, list[int]]] = {
     # ATTR_CONDITION_WINDY_VARIANT
 }
 
+BASE_URL: Final = "https://api.weatherapi.com/v1"
+TIMEZONE_URL: Final = f"{BASE_URL}/timezone.json"
+CURRENT_URL: Final = f"{BASE_URL}/current.json"
+FORECAST_URL: Final = f"{BASE_URL}/forecast.json"
+
 LOGGER = logging.getLogger(__package__)
