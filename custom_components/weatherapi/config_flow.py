@@ -1,7 +1,8 @@
 """Config flow for WeatherAPI integration."""
 
-import aiohttp
 from http import HTTPStatus
+
+import aiohttp
 import requests
 import voluptuous as vol
 
@@ -134,36 +135,43 @@ async def is_valid_api_key(hass: HomeAssistant, api_key: str) -> bool:
     }
 
     try:
-        session: ClientSession = async_get_clientsession(hass)
-        async with asyncio.timeout(10):
-            response = await session.get(
-                TIMEZONE_URL, timeout=10, headers=headers, params=params
+        session: aiohttp.ClientSession = async_get_clientsession(hass)
+
+        response = await session.get(
+            TIMEZONE_URL,
+            timeout=aiohttp.ClientTimeout(total=10),
+            headers=headers,
+            params=params,
+        )
+
+        json_data = await response.json()
+
+        error = json_data.get("error")
+        if error:
+            LOGGER.error(
+                "WeatherAPI responded with error %s: %s",
+                error.get("code"),
+                error.get("message"),
             )
+            return False
 
-            json_data = await response.json()
+        if response.status != HTTPStatus.OK:
+            LOGGER.error(
+                "WeatherAPI responded with HTTP error %s: %s",
+                response.status,
+                response.reason,
+            )
+            return False
 
-            error = json_data.get("error")
-            if error:
-                LOGGER.error(
-                    "WeatherAPI responded with error %s: %s",
-                    error.get("code"),
-                    error.get("message"),
-                )
-                return False
-
-            if response.status != HTTPStatus.OK:
-                LOGGER.error(
-                    "WeatherAPI responded with HTTP error %s: %s",
-                    response.status,
-                    response.reason,
-                )
-                return False
-
-            return True
-
-    except (TimeoutError, aiohttp.ClientError) as exception:
-        LOGGER.error("Timeout calling WeatherAPI end point: %s", exception)
+    except TimeoutError as exception:
+        LOGGER.error("Timeout invoking WeatherAPI end point: %s", exception)
         raise CannotConnect from exception
+
+    except aiohttp.ClientError as exception:
+        LOGGER.error("Error invoking WeatherAPI end point: %s", exception)
+        raise CannotConnect from exception
+
+    return True
 
 
 class InvalidApiKey(HomeAssistantError):

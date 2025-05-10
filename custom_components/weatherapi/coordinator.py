@@ -179,52 +179,32 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         try:
             session: ClientSession = async_get_clientsession(self.hass)
-            async with asyncio.timeout(10):
-                response = await session.get(
-                    FORECAST_URL if self.config.forecast else CURRENT_URL,
-                    timeout=10,
-                    headers=headers,
-                    params=params,
+
+            response = await session.get(
+                FORECAST_URL if self.config.forecast else CURRENT_URL,
+                timeout=aiohttp.ClientTimeout(total=10),
+                headers=headers,
+                params=params,
+            )
+
+            # Decode only if 200 status. This should avoid
+            # JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+            if response.status != HTTPStatus.OK:
+                raise UpdateFailed(
+                    f"WeatherAPI responded with status={response.status}, reason={response.reason}"
                 )
 
-                # Decode only if 200 status. This should avoid
-                # JSONDecodeError: Expecting value: line 1 column 1 (char 0)
-                if response.status != HTTPStatus.OK:
-                    raise UpdateFailed(
-                        f"WeatherAPI responded with status={response.status}, reason={response.reason}"
-                    )
-
-                json_data = await response.json(content_type=None)
-                if json_data is None:
-                    raise UpdateFailed(
-                        f"WeatherAPI responded with HTTP error {response.status} but no data was provided."
-                    )
-
-                error = json_data.get("error")
-                if error:
-                    raise UpdateFailed(
-                        f"WeatherAPI responded with error={error.get('code')}, message={error.get('message')}"
-                    )
-
-                # Using timeZome from location falling back to local timezone
-                location = json_data.get("location", {})
-                self.populate_time_zone(
-                    location.get("tz_id", self.hass.config.time_zone)
+            json_data = await response.json(content_type=None)
+            if json_data is None:
+                raise UpdateFailed(
+                    f"WeatherAPI responded with HTTP error {response.status} but no data was provided."
                 )
 
-                result = self.parse_current(json_data.get("current"))
-                result[DAILY_FORECAST] = (
-                    self.parse_forecast(json_data.get("forecast"), False)
-                    if self.config.forecast
-                    else None
+            error = json_data.get("error")
+            if error:
+                raise UpdateFailed(
+                    f"WeatherAPI responded with error={error.get('code')}, message={error.get('message')}"
                 )
-                result[HOURLY_FORECAST] = (
-                    self.parse_forecast(json_data.get("forecast"), True)
-                    if self.config.forecast
-                    else None
-                )
-                return result
-
         except TimeoutError as exception:
             raise UpdateFailed(
                 f"Timeout invoking WeatherAPI end point: {exception}"
@@ -233,6 +213,23 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             raise UpdateFailed(
                 f"Error invoking WeatherAPI end point: {exception}"
             ) from exception
+        else:
+            # Using timeZome from location falling back to local timezone
+            location = json_data.get("location", {})
+            self.populate_time_zone(location.get("tz_id", self.hass.config.time_zone))
+
+            result = self.parse_current(json_data.get("current"))
+            result[DAILY_FORECAST] = (
+                self.parse_forecast(json_data.get("forecast"), False)
+                if self.config.forecast
+                else None
+            )
+            result[HOURLY_FORECAST] = (
+                self.parse_forecast(json_data.get("forecast"), True)
+                if self.config.forecast
+                else None
+            )
+            return result
 
     def populate_time_zone(self, zone: str):
         """Define timzeone for the forecasts."""
