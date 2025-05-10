@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from http import HTTPStatus
@@ -10,7 +9,6 @@ from typing import Any
 
 import aiohttp
 from aiohttp import ClientSession
-import requests
 
 from homeassistant.components.air_quality import (
     ATTR_CO,
@@ -35,7 +33,6 @@ from homeassistant.components.weather import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 import homeassistant.util.dt as dt_util
@@ -47,19 +44,16 @@ from .const import (
     ATTR_UV,
     ATTR_WEATHER_CONDITION,
     CONDITION_MAP,
+    CURRENT_URL,
     DAILY_FORECAST,
     DEFAULT_FORECAST,
     DEFAULT_IGNORE_PAST_HOUR,
     DOMAIN,
     FORECAST_DAYS,
+    FORECAST_URL,
     HOURLY_FORECAST,
     LOGGER,
 )
-
-BASE_URL = "https://api.weatherapi.com/v1"
-TIMEZONE_URL = f"{BASE_URL}/timezone.json"
-CURRENT_URL = f"{BASE_URL}/current.json"
-FORECAST_URL = f"{BASE_URL}/forecast.json"
 
 
 def to_float(value: str | None) -> float | None:
@@ -113,51 +107,6 @@ def parse_condition_code(value, is_day: bool) -> str:
         condition = None
 
     return condition
-
-
-async def is_valid_api_key(hass: HomeAssistant, api_key: str) -> bool:
-    """Check if the api_key is valid."""
-
-    if api_key is None or api_key == "":
-        raise InvalidApiKey
-
-    params = {"key": api_key, "q": "00501"}  # Using NewYork for key check
-    headers = {
-        "accept": "application/json",
-        "user-agent": "APIMATIC 2.0",
-    }
-
-    try:
-        session: ClientSession = async_get_clientsession(hass)
-        async with asyncio.timeout(10):
-            response = await session.get(
-                TIMEZONE_URL, timeout=10, headers=headers, params=params
-            )
-
-            json_data = await response.json()
-
-            error = json_data.get("error")
-            if error:
-                LOGGER.error(
-                    "WeatherAPI responded with error %s: %s",
-                    error.get("code"),
-                    error.get("message"),
-                )
-                return False
-
-            if response.status != HTTPStatus.OK:
-                LOGGER.error(
-                    "WeatherAPI responded with HTTP error %s: %s",
-                    response.status,
-                    response.reason,
-                )
-                return False
-
-            return True
-
-    except (TimeoutError, aiohttp.ClientError) as exception:
-        LOGGER.error("Timeout calling WeatherAPI end point: %s", exception)
-        raise CannotConnect from exception
 
 
 @dataclass
@@ -444,11 +393,3 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Generate unique id for a sensor."""
         name = f"{self.config.name} {description.name}"
         return f"{self.location}_{name}"
-
-
-class InvalidApiKey(HomeAssistantError):
-    """Error to indicate there is an invalid api key."""
-
-
-class CannotConnect(requests.exceptions.ConnectionError):
-    """Error to indicate we cannot connect."""
