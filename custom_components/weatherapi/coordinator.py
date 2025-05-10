@@ -191,7 +191,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # JSONDecodeError: Expecting value: line 1 column 1 (char 0)
             if response.status != HTTPStatus.OK:
                 raise UpdateFailed(
-                    f"WeatherAPI responded with status={response.status}, reason={response.reason}"
+                    f"WeatherAPI responded with status={response.status}"
                 )
 
             json_data = await response.json(content_type=None)
