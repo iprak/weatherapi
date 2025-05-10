@@ -1,17 +1,18 @@
 """Tests for WeatherAPI integration."""
 
 from unittest.mock import AsyncMock, patch
+from http import HTTPStatus
 
-import pytest_asyncio
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
 
-from custom_components.weatherapi.const import CONFIG_FORECAST, DOMAIN
+from custom_components.weatherapi.const import CONFIG_FORECAST, DOMAIN, TIMEZONE_URL
 from homeassistant import config_entries, data_entry_flow
 from homeassistant.const import CONF_API_KEY
+from homeassistant.core import HomeAssistant
 
 
-@pytest_asyncio.fixture
-async def test_form(hass) -> None:
+async def test_form(hass: HomeAssistant, enable_custom_integrations) -> None:
     """Test we get the form."""
     hass.config.latitude = 18.10
     hass.config.longitude = -77.29
@@ -20,58 +21,46 @@ async def test_form(hass) -> None:
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
 
-    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["errors"] == {}
 
 
-@pytest_asyncio.fixture
-async def test_invalid_api_key(hass) -> None:
+async def test_invalid_api_key(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, enable_custom_integrations
+) -> None:
     """Test that errors are shown when API key is invalid."""
 
-    hass.config.latitude = 18.10
-    hass.config.longitude = -77.29
+    aioclient_mock.get(TIMEZONE_URL, status=HTTPStatus.BAD_REQUEST)
 
-    with patch(
-        "custom_components.weatherapi.config_flow.is_valid_api_key",
-        side_effect=AsyncMock(return_value=False),
-    ):
-        result = await hass.config_entries.flow.async_init(
-            DOMAIN, context={"source": config_entries.SOURCE_USER}
-        )
-        result2 = await hass.config_entries.flow.async_configure(
-            result["flow_id"], {CONF_API_KEY: "invalid_api_key"}
-        )
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    result2 = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_API_KEY: "invalid_api_key"}
+    )
 
-        assert result2["type"] == data_entry_flow.RESULT_TYPE_FORM
-        assert result2["errors"] == {"base": "invalid_api_key"}
+    assert result2["type"] == data_entry_flow.FlowResultType.FORM
+    assert result2["errors"] == {"base": "invalid_api_key"}
 
 
-@pytest_asyncio.fixture
-async def test_create_entry(hass) -> None:
+async def test_create_entry(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, enable_custom_integrations
+) -> None:
     """Test that entry is created."""
 
-    hass.config.latitude = 18.10
-    hass.config.longitude = -77.29
+    aioclient_mock.get(TIMEZONE_URL, json={})  # Fake successful response
 
-    with patch(
-        "custom_components.weatherapi.config_flow.is_valid_api_key",
-        side_effect=AsyncMock(return_value=True),
-    ), patch(
-        "custom_components.weatherapi.coordinator.WeatherAPIUpdateCoordinator.get_weather",
-        side_effect=AsyncMock(return_value={}),
-    ):
-        result = await hass.config_entries.flow.async_init(
-            DOMAIN, context={"source": config_entries.SOURCE_USER}
-        )
-        result2 = await hass.config_entries.flow.async_configure(
-            result["flow_id"], {CONF_API_KEY: "api_key"}
-        )
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    result2 = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_API_KEY: "api_key"}
+    )
 
-        assert result2["type"] == data_entry_flow.RESULT_TYPE_CREATE_ENTRY
+    assert result2["type"] == data_entry_flow.FlowResultType.CREATE_ENTRY
 
 
-@pytest_asyncio.fixture
-async def test_options_flow(hass, enable_custom_integrations) -> None:
+async def test_options_flow(hass: HomeAssistant, enable_custom_integrations) -> None:
     """Test config flow options."""
     entry = MockConfigEntry(domain=DOMAIN)
     entry.add_to_hass(hass)
@@ -81,12 +70,13 @@ async def test_options_flow(hass, enable_custom_integrations) -> None:
 
     result = await hass.config_entries.options.async_init(entry.entry_id)
 
-    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "init"
 
 
-@pytest_asyncio.fixture
-async def test_options_flow_create_entry(hass, enable_custom_integrations) -> None:
+async def test_options_flow_create_entry(
+    hass: HomeAssistant, enable_custom_integrations
+) -> None:
     """Test that entry is creted from config flow options."""
 
     entry = MockConfigEntry(domain=DOMAIN)
@@ -103,4 +93,4 @@ async def test_options_flow_create_entry(hass, enable_custom_integrations) -> No
             user_input={CONFIG_FORECAST: False},
         )
 
-        assert result2["type"] == data_entry_flow.RESULT_TYPE_CREATE_ENTRY
+        assert result2["type"] == data_entry_flow.FlowResultType.CREATE_ENTRY
