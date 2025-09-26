@@ -1,6 +1,5 @@
 """Test WeatherAPI coordinator."""
 
-import asyncio
 from http import HTTPStatus
 import logging
 from unittest.mock import AsyncMock, Mock, patch
@@ -109,13 +108,16 @@ async def test_is_valid_api_key_raises_missing_key(hass: HomeAssistant) -> None:
 async def test_is_valid_api_key_raises_cannotconnect(hass: HomeAssistant) -> None:
     """Test connection issues for is_valid_api_key."""
     session = Mock()
-    session.get = AsyncMock(side_effect=asyncio.TimeoutError)
+    session.get = AsyncMock(side_effect=TimeoutError)
 
-    with patch.object(
-        coordinator,
-        "async_get_clientsession",
-        return_value=session,
-    ), pytest.raises(coordinator.CannotConnect):
+    with (
+        patch.object(
+            coordinator,
+            "async_get_clientsession",
+            return_value=session,
+        ),
+        pytest.raises(coordinator.CannotConnect),
+    ):
         await coordinator.is_valid_api_key(hass, "api_key")
 
 
@@ -139,7 +141,7 @@ async def test_get_weather_raises_cannotconnect(
 ) -> None:
     """Test failed connection for coordinator data update."""
     session = Mock()
-    session.get = AsyncMock(side_effect=asyncio.TimeoutError)
+    session.get = AsyncMock(side_effect=TimeoutError)
 
     with patch.object(coordinator, "async_get_clientsession", return_value=session):
         coord = coordinator.WeatherAPIUpdateCoordinator(hass, coordinator_config)

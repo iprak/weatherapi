@@ -153,7 +153,7 @@ async def is_valid_api_key(hass: HomeAssistant, api_key: str) -> bool:
 
             return True
 
-    except (asyncio.TimeoutError, aiohttp.ClientError) as exception:
+    except (TimeoutError, aiohttp.ClientError) as exception:
         LOGGER.error("Timeout calling WeatherAPI end point: %s", exception)
         raise CannotConnect from exception
 
@@ -238,7 +238,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
                 error = json_data.get("error")
                 if error:
                     raise UpdateFailed(
-                        f"WeatherAPI responded with error={error.get("code")}, message={error.get("message")}"
+                        f"WeatherAPI responded with error={error.get('code')}, message={error.get('message')}"
                     )
 
                 # Using timeZome from location falling back to local timezone
@@ -260,7 +260,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
                 )
                 return result
 
-        except asyncio.TimeoutError as exception:
+        except TimeoutError as exception:
             raise UpdateFailed(
                 f"Timeout invoking WeatherAPI end point: {exception}"
             ) from exception
