@@ -5,9 +5,12 @@ import json
 import os
 
 import pytest
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.weatherapi import coordinator
-from custom_components.weatherapi.const import UPDATE_INTERVAL_MINUTES
+from custom_components.weatherapi.const import DOMAIN, UPDATE_INTERVAL_MINUTES
+from custom_components.weatherapi.coordinator import WeatherAPIUpdateCoordinator
+from homeassistant.core import HomeAssistant
 
 
 def load_json(filename):
@@ -33,3 +36,17 @@ def coordinator_config():
         update_interval=timedelta(minutes=UPDATE_INTERVAL_MINUTES),
         ignore_past_forecast=False,  # Our test data has old timestamps
     )
+
+
+@pytest.fixture
+def mock_coordinator(
+    hass: HomeAssistant, coordinator_config
+) -> WeatherAPIUpdateCoordinator:
+    """Fixture to provide an instance of WeatherAPIUpdateCoordinator linked to the mock entry."""
+
+    config_entry = MockConfigEntry(domain=DOMAIN, data={}, entry_id="id1")
+    config_entry.add_to_hass(hass)
+
+    coordinator = WeatherAPIUpdateCoordinator(hass, coordinator_config, config_entry)
+    config_entry.runtime_data = coordinator
+    return coordinator
