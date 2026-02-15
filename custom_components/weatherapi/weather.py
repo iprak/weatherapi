@@ -25,7 +25,7 @@ from homeassistant.const import (
     UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import generate_entity_id
+from homeassistant.helpers.entity import async_generate_entity_id
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -72,7 +72,7 @@ class WeatherAPIEntity(CoordinatorEntity, WeatherEntity):
         super().__init__(coordinator)
 
         self._attr_name = location_name
-        self.entity_id = generate_entity_id(
+        self.entity_id = async_generate_entity_id(
             ENTITY_ID_FORMAT, f"{DOMAIN}_{location_name}", hass=coordinator.hass
         )
         self._attr_unique_id = f"{self.coordinator.location}_{location_name}"

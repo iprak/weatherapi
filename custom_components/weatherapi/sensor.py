@@ -11,6 +11,7 @@ from homeassistant.components.air_quality import (
     ATTR_SO2,
 )
 from homeassistant.components.sensor import (
+    ENTITY_ID_FORMAT,
     SensorDeviceClass,
     SensorEntity,
     SensorEntityDescription,
@@ -23,7 +24,7 @@ from homeassistant.const import (
     UV_INDEX,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import EntityDescription, generate_entity_id
+from homeassistant.helpers.entity import EntityDescription, async_generate_entity_id
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -145,9 +146,8 @@ class WeatherAPISensorEntity(CoordinatorEntity, SensorEntity):
         name = f"{location_name} {description.name}"
         self.entity_description = description
 
-        entity_id_format = description.key + ".{}"
-        self.entity_id = generate_entity_id(
-            entity_id_format, f"{WEATHERAPI_DOMAIN}_{name}", hass=coordinator.hass
+        self.entity_id = async_generate_entity_id(
+            ENTITY_ID_FORMAT, f"{WEATHERAPI_DOMAIN}_{name}", hass=coordinator.hass
         )
 
         self._attr_unique_id = coordinator.generate_sensor_unique_id(description)
