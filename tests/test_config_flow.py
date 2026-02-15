@@ -6,7 +6,7 @@ import pytest_asyncio
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.weatherapi.const import CONFIG_FORECAST, DOMAIN
-from homeassistant import config_entries, data_entry_flow
+from homeassistant import config_entries
 from homeassistant.const import CONF_API_KEY
 
 

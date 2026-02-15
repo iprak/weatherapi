@@ -16,7 +16,6 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorStateClass,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
     CONCENTRATION_PARTS_PER_MILLION,
@@ -40,6 +39,7 @@ from .const import (
     DEFAULT_ADD_SENSORS,
     DOMAIN as WEATHERAPI_DOMAIN,
 )
+from .coordinator import WeatherAPIConfigEntry
 
 # https://www.weatherapi.com/docs/
 SENSOR_DESCRIPTIONS: tuple[SensorEntityDescription, ...] = (
@@ -107,7 +107,9 @@ SENSOR_DESCRIPTIONS: tuple[SensorEntityDescription, ...] = (
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant,
+    entry: WeatherAPIConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Add sensor devices."""
 
@@ -115,9 +117,7 @@ async def async_setup_entry(
         return
 
     location_name: str = entry.data[CONF_NAME]
-    coordinator: WeatherAPIUpdateCoordinator = hass.data[WEATHERAPI_DOMAIN][
-        entry.entry_id
-    ]
+    coordinator = entry.runtime_data
 
     entities = [
         WeatherAPISensorEntity(location_name, coordinator, description)

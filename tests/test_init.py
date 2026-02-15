@@ -28,7 +28,7 @@ async def test_async_unload_entry(hass, enable_custom_integrations):
     ):
         await weatherapi.async_setup_entry(hass, entry)
 
-        assert hass.data[DOMAIN].get(entry.entry_id) is not None
+        assert entry.runtime_data is not None
 
         await weatherapi.async_unload_entry(hass, entry)
-        assert hass.data[DOMAIN].get(entry.entry_id) is None
+        assert entry.runtime_data is None
