@@ -3,7 +3,6 @@
 from datetime import timedelta
 from typing import Final
 
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_API_KEY,
     CONF_LATITUDE,
@@ -25,16 +24,18 @@ from .const import (
     LOGGER,
     UPDATE_INTERVAL_MINUTES,
 )
-from .coordinator import WeatherAPIUpdateCoordinator, WeatherAPIUpdateCoordinatorConfig
+from .coordinator import (
+    WeatherAPIConfigEntry,
+    WeatherAPIUpdateCoordinator,
+    WeatherAPIUpdateCoordinatorConfig,
+)
 from .sensor import SENSOR_DESCRIPTIONS
 
 PLATFORMS: Final = [Platform.SENSOR, Platform.WEATHER]
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
+async def async_setup_entry(hass: HomeAssistant, entry: WeatherAPIConfigEntry):
     """Set up the WeatherAPI component."""
-
-    hass.data.setdefault(DOMAIN, {})
 
     latitude = entry.data[CONF_LATITUDE]
     longitude = entry.data[CONF_LONGITUDE]
@@ -51,11 +52,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         ),
     )
 
-    coordinator = WeatherAPIUpdateCoordinator(hass, config)
+    coordinator = WeatherAPIUpdateCoordinator(hass, config, entry)
+    entry.runtime_data = coordinator
     await coordinator.async_config_entry_first_refresh()
 
-    entry.async_on_unload(entry.add_update_listener(_async_update_listener))
-    hass.data[DOMAIN][entry.entry_id] = coordinator
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     # Remove previous sensor entries if sensors are not being added
@@ -74,14 +74,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: WeatherAPIConfigEntry) -> bool:
     """Unload a config entry."""
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-    if unload_ok:
-        hass.data[DOMAIN].pop(entry.entry_id)
-    return unload_ok
-
-
-async def _async_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Update listener."""
-    await hass.config_entries.async_reload(entry.entry_id)
+    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)

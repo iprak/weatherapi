@@ -16,7 +16,6 @@ from homeassistant.components.weather import (
     WeatherEntity,
     WeatherEntityFeature,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_NAME,
     PRECISION_TENTHS,
@@ -26,7 +25,7 @@ from homeassistant.const import (
     UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import generate_entity_id
+from homeassistant.helpers.entity import async_generate_entity_id
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -39,15 +38,17 @@ from .const import (
     DOMAIN,
     HOURLY_FORECAST,
 )
+from .coordinator import WeatherAPIConfigEntry
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant,
+    entry: WeatherAPIConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Add weather entity."""
     location_name: str = entry.data[CONF_NAME]
-    coordinator: WeatherAPIUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
-    async_add_entities([WeatherAPIEntity(location_name, coordinator)])
+    async_add_entities([WeatherAPIEntity(location_name, entry.runtime_data)])
 
 
 class WeatherAPIEntity(CoordinatorEntity, WeatherEntity):
@@ -71,7 +72,7 @@ class WeatherAPIEntity(CoordinatorEntity, WeatherEntity):
         super().__init__(coordinator)
 
         self._attr_name = location_name
-        self.entity_id = generate_entity_id(
+        self.entity_id = async_generate_entity_id(
             ENTITY_ID_FORMAT, f"{DOMAIN}_{location_name}", hass=coordinator.hass
         )
         self._attr_unique_id = f"{self.coordinator.location}_{location_name}"

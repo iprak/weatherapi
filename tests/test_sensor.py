@@ -3,7 +3,6 @@
 from unittest.mock import Mock
 
 import pytest
-import pytest_asyncio
 
 from custom_components.weatherapi.const import (
     ATTR_AIR_QUALITY_UK_DEFRA_INDEX,
@@ -31,7 +30,6 @@ from homeassistant.core import HomeAssistant
         (11, "Very High"),
     ],
 )
-@pytest_asyncio.fixture
 def test_uk_defra_index(hass: HomeAssistant, value, expected_band) -> None:
     """Test UK Defra Index sensor."""
     description = SensorEntityDescription(

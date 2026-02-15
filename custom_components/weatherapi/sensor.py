@@ -11,12 +11,12 @@ from homeassistant.components.air_quality import (
     ATTR_SO2,
 )
 from homeassistant.components.sensor import (
+    ENTITY_ID_FORMAT,
     SensorDeviceClass,
     SensorEntity,
     SensorEntityDescription,
     SensorStateClass,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
     CONCENTRATION_PARTS_PER_MILLION,
@@ -24,7 +24,7 @@ from homeassistant.const import (
     UV_INDEX,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import EntityDescription, generate_entity_id
+from homeassistant.helpers.entity import EntityDescription, async_generate_entity_id
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -40,6 +40,7 @@ from .const import (
     DEFAULT_ADD_SENSORS,
     DOMAIN as WEATHERAPI_DOMAIN,
 )
+from .coordinator import WeatherAPIConfigEntry
 
 # https://www.weatherapi.com/docs/
 SENSOR_DESCRIPTIONS: tuple[SensorEntityDescription, ...] = (
@@ -107,7 +108,9 @@ SENSOR_DESCRIPTIONS: tuple[SensorEntityDescription, ...] = (
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant,
+    entry: WeatherAPIConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Add sensor devices."""
 
@@ -115,9 +118,7 @@ async def async_setup_entry(
         return
 
     location_name: str = entry.data[CONF_NAME]
-    coordinator: WeatherAPIUpdateCoordinator = hass.data[WEATHERAPI_DOMAIN][
-        entry.entry_id
-    ]
+    coordinator = entry.runtime_data
 
     entities = [
         WeatherAPISensorEntity(location_name, coordinator, description)
@@ -145,9 +146,8 @@ class WeatherAPISensorEntity(CoordinatorEntity, SensorEntity):
         name = f"{location_name} {description.name}"
         self.entity_description = description
 
-        entity_id_format = description.key + ".{}"
-        self.entity_id = generate_entity_id(
-            entity_id_format, f"{WEATHERAPI_DOMAIN}_{name}", hass=coordinator.hass
+        self.entity_id = async_generate_entity_id(
+            ENTITY_ID_FORMAT, f"{WEATHERAPI_DOMAIN}_{name}", hass=coordinator.hass
         )
 
         self._attr_unique_id = coordinator.generate_sensor_unique_id(description)

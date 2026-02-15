@@ -33,6 +33,7 @@ from homeassistant.components.weather import (
     ATTR_WEATHER_WIND_SPEED,
     Forecast,
 )
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -58,6 +59,8 @@ BASE_URL = "https://api.weatherapi.com/v1"
 TIMEZONE_URL = f"{BASE_URL}/timezone.json"
 CURRENT_URL = f"{BASE_URL}/current.json"
 FORECAST_URL = f"{BASE_URL}/forecast.json"
+
+type WeatherAPIConfigEntry = ConfigEntry[WeatherAPIUpdateCoordinator]
 
 
 def to_float(value: str | None) -> float | None:
@@ -174,7 +177,10 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
     """The WeatherAPI update coordinator."""
 
     def __init__(
-        self, hass: HomeAssistant, config: WeatherAPIUpdateCoordinatorConfig
+        self,
+        hass: HomeAssistant,
+        config: WeatherAPIUpdateCoordinatorConfig,
+        config_entry: WeatherAPIConfigEntry,
     ) -> None:
         """Initialize."""
 
@@ -185,6 +191,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
         super().__init__(
             hass,
             LOGGER,
+            config_entry=config_entry,
             name="WeatherAPIUpdateCoordinator",
             update_interval=config.update_interval,
         )
