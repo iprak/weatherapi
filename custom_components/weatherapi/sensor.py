@@ -1,7 +1,5 @@
 """Support for WeatherAPI integration."""
 
-from __future__ import annotations
-
 from homeassistant.components.air_quality import (
     ATTR_CO,
     ATTR_NO2,

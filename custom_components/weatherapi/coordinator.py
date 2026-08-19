@@ -1,7 +1,5 @@
 """The WeatherAPI data coordinator."""
 
-from __future__ import annotations
-
 import asyncio
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -73,7 +71,7 @@ def to_float(value: str | None) -> float | None:
             float(value),
             1,
         )
-    except (ValueError, TypeError):
+    except ValueError, TypeError:
         return None
 
 
@@ -84,7 +82,7 @@ def to_int(value: str | None) -> int | None:
 
     try:
         return int(value)
-    except (ValueError, TypeError):
+    except ValueError, TypeError:
         return None
 
 
