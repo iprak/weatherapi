@@ -5,11 +5,10 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components import weatherapi
 from custom_components.weatherapi.const import DOMAIN
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONF_API_KEY, CONF_LATITUDE, CONF_LONGITUDE, CONF_NAME
 from homeassistant.core import HomeAssistant
-from homeassistant.config_entries import ConfigEntryState
 
 
 @pytest.mark.usefixtures("enable_custom_integrations")
