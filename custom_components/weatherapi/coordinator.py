@@ -36,7 +36,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
-import homeassistant.util.dt as dt_util
+from homeassistant.util import dt as dt_util
 
 from .const import (
     ATTR_AIR_QUALITY_UK_DEFRA_INDEX,
@@ -357,7 +357,7 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
         if time_epoch is None:
             return None
 
-        now_hour = datetime.now().replace(minute=0, second=0, microsecond=0)
+        now_hour = dt_util.naive_now().replace(minute=0, second=0, microsecond=0)
         now_hour_ts = now_hour.timestamp()
 
         if self.config.ignore_past_forecast and (time_epoch < now_hour_ts):
