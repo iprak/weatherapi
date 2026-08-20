@@ -1,7 +1,5 @@
 """Support for WeatherAPI integration."""
 
-from __future__ import annotations
-
 from homeassistant.components.air_quality import (
     ATTR_CO,
     ATTR_NO2,
@@ -17,12 +15,7 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorStateClass,
 )
-from homeassistant.const import (
-    CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
-    CONCENTRATION_PARTS_PER_MILLION,
-    CONF_NAME,
-    UV_INDEX,
-)
+from homeassistant.const import CONF_NAME, UV_INDEX, UnitOfDensity, UnitOfRatio
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityDescription, async_generate_entity_id
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -48,28 +41,28 @@ SENSOR_DESCRIPTIONS: tuple[SensorEntityDescription, ...] = (
         key=ATTR_CO,
         name="CO",
         device_class=SensorDeviceClass.CO,
-        native_unit_of_measurement=CONCENTRATION_PARTS_PER_MILLION,
+        native_unit_of_measurement=UnitOfRatio.PARTS_PER_MILLION,
         state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
         key=ATTR_OZONE,
         name="Ozone",
         device_class=SensorDeviceClass.OZONE,
-        native_unit_of_measurement=CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
+        native_unit_of_measurement=UnitOfDensity.MICROGRAMS_PER_CUBIC_METER,
         state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
         key=ATTR_NO2,
         name="NO2",
         device_class=SensorDeviceClass.NITROGEN_DIOXIDE,
-        native_unit_of_measurement=CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
+        native_unit_of_measurement=UnitOfDensity.MICROGRAMS_PER_CUBIC_METER,
         state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
         key=ATTR_SO2,
         name="SO2",
         device_class=SensorDeviceClass.SULPHUR_DIOXIDE,
-        native_unit_of_measurement=CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
+        native_unit_of_measurement=UnitOfDensity.MICROGRAMS_PER_CUBIC_METER,
         state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
@@ -77,7 +70,7 @@ SENSOR_DESCRIPTIONS: tuple[SensorEntityDescription, ...] = (
         name="PM 2.5",
         icon="mdi:air-filter",
         device_class=SensorDeviceClass.PM25,
-        native_unit_of_measurement=CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
+        native_unit_of_measurement=UnitOfDensity.MICROGRAMS_PER_CUBIC_METER,
         state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
@@ -85,7 +78,7 @@ SENSOR_DESCRIPTIONS: tuple[SensorEntityDescription, ...] = (
         name="PM 1.0",
         icon="mdi:air-filter",
         device_class=SensorDeviceClass.PM10,
-        native_unit_of_measurement=CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
+        native_unit_of_measurement=UnitOfDensity.MICROGRAMS_PER_CUBIC_METER,
         state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
