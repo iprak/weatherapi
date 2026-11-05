@@ -8,8 +8,13 @@ from custom_components.weatherapi.const import (
     ATTR_AIR_QUALITY_UK_DEFRA_INDEX,
     ATTR_AIR_QUALITY_UK_DEFRA_INDEX_BAND,
 )
-from custom_components.weatherapi.sensor import WeatherAPISensorEntity
+from custom_components.weatherapi.sensor import (
+    SENSOR_DESCRIPTIONS,
+    WeatherAPISensorEntity,
+)
+from homeassistant.components.air_quality import ATTR_CO, ATTR_PM_10
 from homeassistant.components.sensor import SensorEntityDescription, SensorStateClass
+from homeassistant.const import UnitOfDensity
 from homeassistant.core import HomeAssistant
 
 
@@ -53,3 +58,14 @@ def test_uk_defra_index(hass: HomeAssistant, value, expected_band) -> None:
         assert sensor.extra_state_attributes == {
             ATTR_AIR_QUALITY_UK_DEFRA_INDEX_BAND: expected_band
         }
+
+
+def test_sensor_descriptions() -> None:
+    """Test sensor descriptions for CO unit and PM10 naming."""
+    by_key = {desc.key: desc for desc in SENSOR_DESCRIPTIONS}
+    assert by_key[ATTR_PM_10].name == "PM 10"
+    assert (
+        by_key[ATTR_CO].native_unit_of_measurement
+        == UnitOfDensity.MICROGRAMS_PER_CUBIC_METER
+    )
+    assert len(SENSOR_DESCRIPTIONS) == 24
