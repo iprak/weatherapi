@@ -15,8 +15,9 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorStateClass,
 )
-from homeassistant.const import CONF_NAME, UV_INDEX, UnitOfDensity, UnitOfRatio
+from homeassistant.const import CONF_NAME, UV_INDEX, UnitOfDensity
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity import EntityDescription, async_generate_entity_id
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
@@ -40,8 +41,8 @@ SENSOR_DESCRIPTIONS: tuple[SensorEntityDescription, ...] = (
     SensorEntityDescription(
         key=ATTR_CO,
         name="CO",
-        device_class=SensorDeviceClass.CO,
-        native_unit_of_measurement=UnitOfRatio.PARTS_PER_MILLION,
+        icon="mdi:molecule-co",
+        native_unit_of_measurement=UnitOfDensity.MICROGRAMS_PER_CUBIC_METER,
         state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
@@ -75,7 +76,7 @@ SENSOR_DESCRIPTIONS: tuple[SensorEntityDescription, ...] = (
     ),
     SensorEntityDescription(
         key=ATTR_PM_10,
-        name="PM 1.0",
+        name="PM 10",
         icon="mdi:air-filter",
         device_class=SensorDeviceClass.PM10,
         native_unit_of_measurement=UnitOfDensity.MICROGRAMS_PER_CUBIC_METER,
@@ -84,6 +85,7 @@ SENSOR_DESCRIPTIONS: tuple[SensorEntityDescription, ...] = (
     SensorEntityDescription(
         key=ATTR_AIR_QUALITY_US_EPA_INDEX,
         name="US - EPA",
+        device_class=SensorDeviceClass.AQI,
         state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
@@ -138,6 +140,16 @@ class WeatherAPISensorEntity(CoordinatorEntity, SensorEntity):
 
         name = f"{location_name} {description.name}"
         self.entity_description = description
+
+        if getattr(coordinator, "location", None) and isinstance(
+            coordinator.location, str
+        ):
+            self._attr_device_info = DeviceInfo(
+                entry_type=DeviceEntryType.SERVICE,
+                identifiers={(WEATHERAPI_DOMAIN, coordinator.location)},
+                manufacturer="WeatherAPI.com",
+                name=location_name,
+            )
 
         self.entity_id = async_generate_entity_id(
             ENTITY_ID_FORMAT, f"{WEATHERAPI_DOMAIN}_{name}", hass=coordinator.hass

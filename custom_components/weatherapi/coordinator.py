@@ -418,9 +418,9 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
             ATTR_CO: to_float(air_quality.get("co")),
             ATTR_NO2: to_float(air_quality.get("no2")),
             ATTR_OZONE: to_float(air_quality.get("o3")),
-            ATTR_PM_10: to_float(air_quality.get("so2")),
+            ATTR_PM_10: to_float(air_quality.get("pm10")),
             ATTR_PM_2_5: to_float(air_quality.get("pm2_5")),
-            ATTR_SO2: to_float(air_quality.get("pm10")),
+            ATTR_SO2: to_float(air_quality.get("so2")),
             ATTR_AIR_QUALITY_UK_DEFRA_INDEX: to_int(
                 air_quality.get(ATTR_AIR_QUALITY_UK_DEFRA_INDEX)
             ),
