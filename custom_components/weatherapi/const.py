@@ -5,6 +5,7 @@ from typing import Final
 
 from homeassistant.components.weather import (
     ATTR_CONDITION_CLOUDY,
+    ATTR_CONDITION_EXCEPTIONAL,
     ATTR_CONDITION_FOG,
     ATTR_CONDITION_HAIL,
     ATTR_CONDITION_LIGHTNING,
@@ -15,6 +16,7 @@ from homeassistant.components.weather import (
     ATTR_CONDITION_SNOWY,
     ATTR_CONDITION_SNOWY_RAINY,
     ATTR_CONDITION_SUNNY,
+    ATTR_CONDITION_WINDY,
 )
 
 DOMAIN: Final = "weatherapi"
@@ -49,8 +51,24 @@ DEFAULT_IGNORE_PAST_HOUR: Final = True
 CONDITION_MAP: Final[dict[str, list[int]]] = {
     # ATTR_CONDITION_CLEAR_NIGHT: [1000],
     ATTR_CONDITION_CLOUDY: [1006, 1009],  # Cloudy, Overcast
-    # ATTR_CONDITION_EXCEPTIONAL
-    ATTR_CONDITION_FOG: [1030, 1135, 1147],  # Mist, Fog, Freezing fog
+    ATTR_CONDITION_EXCEPTIONAL: [
+        1021,  # Dust storm
+        1024,  # Sandstorm
+        1027,  # Severe sandstorm
+        1042,  # Severe smog
+    ],
+    ATTR_CONDITION_FOG: [
+        1012,  # Haze
+        1015,  # Dust haze
+        1030,  # Mist
+        1033,  # Smoke
+        1036,  # Smoky haze
+        1039,  # Smog
+        1045,  # Saharan dust
+        1048,  # Dust
+        1135,  # Fog
+        1147,  # Freezing fog
+    ],
     ATTR_CONDITION_HAIL: [
         1237,  # Ice pellets
         1261,  # Light showers of ice pellets
@@ -106,7 +124,7 @@ CONDITION_MAP: Final[dict[str, list[int]]] = {
         1258,  # Moderate or heavy snow showers
     ],
     ATTR_CONDITION_SUNNY: [1000],  # Sunny
-    # ATTR_CONDITION_WINDY
+    ATTR_CONDITION_WINDY: [1018],  # Blowing dust
     # ATTR_CONDITION_WINDY_VARIANT
 }
 

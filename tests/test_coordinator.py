@@ -8,8 +8,10 @@ import pytest
 
 from custom_components.weatherapi import coordinator
 from custom_components.weatherapi.const import DAILY_FORECAST, HOURLY_FORECAST
+from homeassistant.components.air_quality import ATTR_PM_10, ATTR_SO2
 from homeassistant.components.weather import (
     ATTR_CONDITION_CLEAR_NIGHT,
+    ATTR_CONDITION_FOG,
     ATTR_CONDITION_SUNNY,
     Forecast,
 )
@@ -64,6 +66,7 @@ def test_datetime_to_iso(value, result) -> None:
     [
         ("1000", True, ATTR_CONDITION_SUNNY),
         ("1000", False, ATTR_CONDITION_CLEAR_NIGHT),
+        ("1036", True, ATTR_CONDITION_FOG),
         ("9999999", True, None),
         (None, True, None),
     ],
@@ -162,6 +165,9 @@ async def test_get_weather(hass: HomeAssistant, mock_json, mock_coordinator) -> 
         assert result
         assert result[DAILY_FORECAST]
         assert result[HOURLY_FORECAST]
+        # Verify air quality PM10 (8.2) and SO2 (2.9) are not swapped
+        assert result[ATTR_PM_10] == 8.2
+        assert result[ATTR_SO2] == 2.9
 
 
 async def test_get_weather_hourly_forecast(
