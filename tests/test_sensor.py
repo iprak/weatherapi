@@ -8,7 +8,10 @@ from custom_components.weatherapi.const import (
     ATTR_AIR_QUALITY_UK_DEFRA_INDEX,
     ATTR_AIR_QUALITY_UK_DEFRA_INDEX_BAND,
 )
-from custom_components.weatherapi.sensor import WeatherAPISensorEntity
+from custom_components.weatherapi.sensor import (
+    SENSOR_DESCRIPTIONS,
+    WeatherAPISensorEntity,
+)
 from homeassistant.components.sensor import SensorEntityDescription, SensorStateClass
 from homeassistant.core import HomeAssistant
 
@@ -53,3 +56,8 @@ def test_uk_defra_index(hass: HomeAssistant, value, expected_band) -> None:
         assert sensor.extra_state_attributes == {
             ATTR_AIR_QUALITY_UK_DEFRA_INDEX_BAND: expected_band
         }
+
+
+def test_sensor_descriptions() -> None:
+    """Test sensor descriptions count."""
+    assert len(SENSOR_DESCRIPTIONS) == 24
