@@ -18,7 +18,7 @@ from homeassistant.components.weather import (
 )
 
 DOMAIN: Final = "weatherapi"
-FORECAST_DAYS: Final = 5
+FORECAST_DAYS: Final = 10
 ATTRIBUTION: Final = "Powered by WeatherAPI.com"
 
 # 1,000,000/month = 32,358/day = 1,344/hour = 22/minute
