@@ -22,12 +22,16 @@ from homeassistant.components.sensor import SensorEntityDescription
 from homeassistant.components.weather import (
     ATTR_CONDITION_CLEAR_NIGHT,
     ATTR_CONDITION_SUNNY,
+    ATTR_WEATHER_APPARENT_TEMPERATURE,
+    ATTR_WEATHER_CLOUD_COVERAGE,
+    ATTR_WEATHER_DEW_POINT,
     ATTR_WEATHER_HUMIDITY,
     ATTR_WEATHER_OZONE,
     ATTR_WEATHER_PRESSURE,
     ATTR_WEATHER_TEMPERATURE,
     ATTR_WEATHER_VISIBILITY,
     ATTR_WEATHER_WIND_BEARING,
+    ATTR_WEATHER_WIND_GUST_SPEED,
     ATTR_WEATHER_WIND_SPEED,
     Forecast,
 )
@@ -337,7 +341,9 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
                     native_temperature=to_float(day.get("maxtemp_c")),
                     native_templow=to_float(day.get("mintemp_c")),
                     # There is no wind_dir
-                    naive_wind_speed=to_float(day.get("maxwind_kph")),
+                    native_wind_speed=to_float(day.get("maxwind_kph")),
+                    humidity=to_float(day.get("avghumidity")),
+                    uv_index=to_float(day.get("uv")),
                 )
                 day_entry[ATTR_REPORTED_CONDITION] = condition_code
 
@@ -379,8 +385,14 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
             native_precipitation=to_float(data.get("precip_mm")),
             native_pressure=to_float(data.get("pressure_mb")),
             native_temperature=to_float(data.get("temp_c")),
+            native_apparent_temperature=to_float(data.get("feelslike_c")),
+            native_dew_point=to_float(data.get("dewpoint_c")),
             wind_bearing=data.get("wind_dir"),
             native_wind_speed=to_float(data.get("wind_kph")),
+            native_wind_gust_speed=to_float(data.get("gust_kph")),
+            humidity=to_int(data.get("humidity")),
+            cloud_coverage=to_int(data.get("cloud")),
+            uv_index=to_float(data.get("uv")),
         )
         value[ATTR_REPORTED_CONDITION] = condition_code
         return [True, value]
@@ -406,10 +418,14 @@ class WeatherAPIUpdateCoordinator(DataUpdateCoordinator):
         return {
             ATTR_WEATHER_HUMIDITY: to_float(json.get("humidity")),
             ATTR_WEATHER_TEMPERATURE: to_float(json.get("temp_c")),
+            ATTR_WEATHER_APPARENT_TEMPERATURE: to_float(json.get("feelslike_c")),
+            ATTR_WEATHER_DEW_POINT: to_float(json.get("dewpoint_c")),
             ATTR_WEATHER_PRESSURE: to_float(json.get("pressure_mb")),
             ATTR_WEATHER_WIND_SPEED: to_float(json.get("wind_kph")),
+            ATTR_WEATHER_WIND_GUST_SPEED: to_float(json.get("gust_kph")),
             ATTR_WEATHER_WIND_BEARING: json.get("wind_degree"),
             ATTR_WEATHER_VISIBILITY: to_float(json.get("vis_km")),
+            ATTR_WEATHER_CLOUD_COVERAGE: to_int(json.get("cloud")),
             ATTR_UV: to_float(json.get("uv")),
             ATTR_REPORTED_CONDITION: condition_code,
             ATTR_WEATHER_CONDITION: parse_condition_code(condition_code, is_day),
