@@ -25,7 +25,12 @@ ATTRIBUTION: Final = "Powered by WeatherAPI.com"
 UPDATE_INTERVAL_MINUTES: Final = 5
 
 ATTR_WEATHER_CONDITION: Final = "condition"
+ATTR_CONDITION_TEXT: Final = "condition_text"
 ATTR_UV: Final = "uv"
+ATTR_WIND_CHILL: Final = "windchill"
+ATTR_HEAT_INDEX: Final = "heat_index"
+ATTR_WIND_DIR: Final = "wind_dir"
+ATTR_PRECIPITATION: Final = "precipitation"
 # https://www.weatherapi.com/docs/#intro-aqi
 ATTR_AIR_QUALITY_US_EPA_INDEX: Final = "us-epa-index"
 ATTR_AIR_QUALITY_UK_DEFRA_INDEX: Final = "gb-defra-index"
