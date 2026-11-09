@@ -4,12 +4,16 @@ from collections.abc import Mapping
 from typing import Any
 
 from homeassistant.components.weather import (
+    ATTR_WEATHER_APPARENT_TEMPERATURE,
+    ATTR_WEATHER_CLOUD_COVERAGE,
+    ATTR_WEATHER_DEW_POINT,
     ATTR_WEATHER_HUMIDITY,
     ATTR_WEATHER_OZONE,
     ATTR_WEATHER_PRESSURE,
     ATTR_WEATHER_TEMPERATURE,
     ATTR_WEATHER_VISIBILITY,
     ATTR_WEATHER_WIND_BEARING,
+    ATTR_WEATHER_WIND_GUST_SPEED,
     ATTR_WEATHER_WIND_SPEED,
     ENTITY_ID_FORMAT,
     Forecast,
@@ -19,6 +23,7 @@ from homeassistant.components.weather import (
 from homeassistant.const import (
     CONF_NAME,
     PRECISION_TENTHS,
+    UnitOfLength,
     UnitOfPrecipitationDepth,
     UnitOfPressure,
     UnitOfSpeed,
@@ -32,6 +37,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from . import WeatherAPIUpdateCoordinator
 from .const import (
     ATTR_REPORTED_CONDITION,
+    ATTR_UV,
     ATTR_WEATHER_CONDITION,
     ATTRIBUTION,
     DAILY_FORECAST,
@@ -59,6 +65,7 @@ class WeatherAPIEntity(CoordinatorEntity, WeatherEntity):
     _attr_native_precipitation_unit = UnitOfPrecipitationDepth.MILLIMETERS
     _attr_native_pressure_unit = UnitOfPressure.MBAR
     _attr_native_temperature_unit = UnitOfTemperature.CELSIUS
+    _attr_native_visibility_unit = UnitOfLength.KILOMETERS
     _attr_native_wind_speed_unit = UnitOfSpeed.KILOMETERS_PER_HOUR
     _attr_precision = PRECISION_TENTHS
     _attr_supported_features = (
@@ -88,6 +95,16 @@ class WeatherAPIEntity(CoordinatorEntity, WeatherEntity):
         return self.coordinator.data.get(ATTR_WEATHER_TEMPERATURE)
 
     @property
+    def native_apparent_temperature(self) -> float | None:
+        """Return the current apparent (feels like) temperature."""
+        return self.coordinator.data.get(ATTR_WEATHER_APPARENT_TEMPERATURE)
+
+    @property
+    def native_dew_point(self) -> float | None:
+        """Return the current dew point."""
+        return self.coordinator.data.get(ATTR_WEATHER_DEW_POINT)
+
+    @property
     def native_pressure(self) -> float | None:
         """Return the current pressure."""
         return self.coordinator.data.get(ATTR_WEATHER_PRESSURE)
@@ -103,6 +120,11 @@ class WeatherAPIEntity(CoordinatorEntity, WeatherEntity):
         return self.coordinator.data.get(ATTR_WEATHER_WIND_SPEED)
 
     @property
+    def native_wind_gust_speed(self) -> float | None:
+        """Return the current wind gust speed."""
+        return self.coordinator.data.get(ATTR_WEATHER_WIND_GUST_SPEED)
+
+    @property
     def wind_bearing(self) -> float | str | None:
         """Return the current wind bearing."""
         return self.coordinator.data.get(ATTR_WEATHER_WIND_BEARING)
@@ -116,6 +138,16 @@ class WeatherAPIEntity(CoordinatorEntity, WeatherEntity):
     def native_visibility(self) -> float | None:
         """Return the current visibility."""
         return self.coordinator.data.get(ATTR_WEATHER_VISIBILITY)
+
+    @property
+    def cloud_coverage(self) -> float | None:
+        """Return the current cloud coverage."""
+        return self.coordinator.data.get(ATTR_WEATHER_CLOUD_COVERAGE)
+
+    @property
+    def uv_index(self) -> float | None:
+        """Return the current UV index."""
+        return self.coordinator.data.get(ATTR_UV)
 
     @property
     def condition(self) -> str | None:
